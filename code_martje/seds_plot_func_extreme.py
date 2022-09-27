@@ -12,7 +12,7 @@ cdict_models = {'powlaw': 'DarkOrange',
         'curve':'k'
         } 
 
-plt.style.use('style.mplstyle')
+#plt.style.use('style.mplstyle')
 rc('text', usetex=False)
 rc('font', family='sans-serif')
 
