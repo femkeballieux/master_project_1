@@ -114,7 +114,7 @@ freq_LoTSS, freq_NVSS, freq_TGSS, freq_VLSSr, freq_LoLSS, freq_FIRST, freq_inban
                                                                                                                             74., 54., 1400.001,\
                                                                                                                             128., 144.00001, 160. # MHz
 
-Name = tbdata['Source'].rstrip()
+Name = tbdata['Source_Name_1'].rstrip()
 RA = tbdata['RAJ2000_1']
 DEC = tbdata['DEJ2000_1']
 
