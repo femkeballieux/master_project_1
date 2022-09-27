@@ -8,6 +8,8 @@ import warnings
 import time
 warnings.filterwarnings("ignore")
 
+#Run on vdesk
+
 # fit power-law without rms cuts
 def spectral_index_eval_norms(freq,flux,flux_err):
     fluxposind = np.where((flux > 0))
@@ -76,12 +78,12 @@ def make_fluxes(catalogue, e_catalogue, freq_catalogue):
     
     return freq, freq_high, freq_low, flux, flux_err, flux_high, flux_low, flux_err_high, flux_err_low, S_match
 
-hdulist = fits.open('data/crossmatch_NVSS_TGSS_VLSSr_LoLSS_FIRST_inband.fits')
+hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/crossmatch_NVSS_TGSS_VLSSr_LoLSS_inband.fits')
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 hdulist.close()# fit curvature models with rms cuts
 
-S_LoTSS, stat_e_S_LoTSS = np.array(tbdata['SpeakTot'])/1000., np.array(tbdata['e_SpeakTot'])/1000. # Jy/beam
+S_LoTSS, stat_e_S_LoTSS = np.array(tbdata['Peak_flux'])/1000., np.array(tbdata['E_Peak_flux'])/1000. # Jy/beam
 e_S_LoTSS = np.sqrt(stat_e_S_LoTSS**2 + (0.1*S_LoTSS)**2) # Combine the statistical LoTSS error and overall error on LoTSS
 
 S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['e_S1_4'])/1000. # Jy
@@ -323,6 +325,6 @@ tbhdu = fits.BinTableHDU.from_columns(cols)
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  
 
-tbhdu.writeto('data/fit_vals_power_law_NVSS_intflux.fits', overwrite = True)
+tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/fit_vals_power_law_NVSS_intflux.fits', overwrite = True)
 
 

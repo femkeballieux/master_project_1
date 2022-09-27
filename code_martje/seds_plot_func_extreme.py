@@ -6,6 +6,8 @@ import os
 import math
 from matplotlib import rc # To plot labels in serif rather than default.
 
+#run on vdesk
+
 cdict_models = {'powlaw': 'DarkOrange',
         'curve':'k'
         } 
