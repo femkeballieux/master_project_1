@@ -244,6 +244,7 @@ def sed(models,paras,freq,flux,flux_err, name, name_title,#alpha_low, alpha_high
             ax1.grid(axis = 'x',which = 'both')
 
     if savefig == True:
+        print(name)
         if not os.path.exists(os.getcwd()+'/kross_seds'):
             os.makedirs(os.getcwd()+'/kross_seds')
             print('Creating directory ', os.getcwd()+'/kross_seds/ and saving figures in png format with title names.')
