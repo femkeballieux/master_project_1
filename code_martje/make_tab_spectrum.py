@@ -257,18 +257,18 @@ for i in tqdm(range(np.shape(flux_high[1])[0])):
         sedplot_flux_err = np.insert(sedplot_flux_err,1,e_S_inband_high[S_match][i])
     
     if -alpha_low[i] >= 0. and -alpha_high[i] >= 0.:
-        Name_source_list.append('Q1/'+Name_source[i])
+        Name_source_list.append('Q1_'+Name_source[i])
     elif -alpha_low[i] >= 0.1 and -alpha_high[i] <= 0.:
-        Name_source_list.append('PS/'+Name_source[i])
+        Name_source_list.append('PS_'+Name_source[i])
     elif -alpha_low[i] >= 0. and -alpha_high[i] <= 0.:
-        Name_source_list.append('Q2/'+Name_source[i])
+        Name_source_list.append('Q2_'+Name_source[i])
     elif -alpha_low[i] <= 0. and -alpha_high[i] <= 0.:
-        Name_source_list.append('Q3/'+Name_source[i])
+        Name_source_list.append('Q3_'+Name_source[i])
         curve_fit_qual[i] = 0
     elif -alpha_low[i] <= 0. and -alpha_high[i] >= 0.:
-        Name_source_list.append('Q4/'+Name_source[i])
+        Name_source_list.append('Q4_'+Name_source[i])
 
-    Name_source_source = 'NVSS/'+Name_source_list[i]+'_NVSS_total'
+    Name_source_source = 'NVSS_'+Name_source_list[i]+'_NVSS_total'
     
     seds_plot_func_extreme.sed([gpscssmodels.powlaw,gpscssmodels.powlaw, gpscssmodels.curve],[poptpowlaw_high,poptpowlaw_low, poptgen],\
         sedplot_freq,sedplot_flux,sedplot_flux_err, Name_source_source, Name_source[i], freq_labels = True, savefig = True, resid = False, error = error[:,i])
