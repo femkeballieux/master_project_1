@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Sep 27 15:04:17 2022
-
-@author: Femke
-"""
-
 # !/bin/python
 # Code for all the models used to fit radio sources, paricularly peaked-spectrum sources (GPS/CSS models). All are fitting in linear space.
 # Author: J. R. Callingham
