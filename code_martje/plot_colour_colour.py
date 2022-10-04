@@ -62,7 +62,7 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
     ax = plt.subplot(gs[2]) #main
 
     # Limits of plot
-    xmin = -2.5
+    xmin = -4#-2.5
     xmax = 2.5
     ymin = -2.5
     ymax = 1.5

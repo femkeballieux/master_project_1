@@ -15,12 +15,12 @@ survey.close()
 print(data.colnames)
 data.sort('RA')
 
-
+#FIX COMMENTS LATER, NOW JUST RUN IT WITH OTHER COLUMN
 # # Get flux data + errors from data
-peak_flux = data['Peak_flux']
+total_flux = data['Total_flux']
 
 # # Get position data
-sample = len(peak_flux) - 1
+sample = len(total_flux) - 1
 RA = np.array(data['RA'])
 DEC = np.array(data['DEC'])
 
@@ -42,15 +42,15 @@ for index, i in enumerate(tqdm(RA)):
     if index - border < 0:
         RA_i = np.concatenate((RA[index - border:], RA[:index + border]))
         DEC_i = np.concatenate((DEC[index - border:], DEC[:index + border]))
-        peak_flux_i = np.concatenate((peak_flux[index - border:], peak_flux[:index + border]))
+        total_flux_i = np.concatenate((total_flux[index - border:], total_flux[:index + border]))
     elif index + border > len(RA):
         RA_i = np.concatenate((RA[index-border:], RA[:index+border-len(RA)]))
         DEC_i = np.concatenate((DEC[index-border:], DEC[:index+border-len(RA)]))
-        peak_flux_i = np.concatenate((peak_flux[index-border:], peak_flux[:index+border-len(RA)]))
+        total_flux_i = np.concatenate((total_flux[index-border:], total_flux[:index+border-len(RA)]))
     else:
         RA_i = RA[index-border:index+border]
         DEC_i = DEC[index-border:index+border]
-        peak_flux_i = peak_flux[index-border:index+border]
+        total_flux_i = total_flux[index-border:index+border]
         # name_i = name[index-border:index+border]
 
     # Check if any source has an absolute distance <47'' in RA or DEC from a source
@@ -63,8 +63,8 @@ for index, i in enumerate(tqdm(RA)):
 
     # remove sources from catalogue
     if np.any(isolate_mask):   
-        flux_source = peak_flux[index]
-        neighbour_flux = peak_flux_i[isolate_mask]
+        flux_source = total_flux[index]
+        neighbour_flux = total_flux_i[isolate_mask]
         for number, f in enumerate(neighbour_flux):
             if f/flux_source > 0.1:
                 unisolated_index.append(index)
