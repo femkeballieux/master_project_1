@@ -279,7 +279,7 @@ for i in tqdm(range(np.shape(flux_high[1])[0])):
     Name_source_source = 'NVSS_'+Name_source_list[i]+'_NVSS_total'
     
     seds_plot_func_extreme.sed([gpscssmodels.powlaw,gpscssmodels.powlaw, gpscssmodels.curve],[poptpowlaw_high,poptpowlaw_low, poptgen],\
-        sedplot_freq,sedplot_flux,sedplot_flux_err, Name_source_source, Name_source[i], freq_labels = True, savefig = True, resid = False, error = error[:,i])
+        sedplot_freq,sedplot_flux,sedplot_flux_err, Name_source_source, Name_source[i], freq_labels = True, savefig = False, resid = False, error = error[:,i])
 
 
 print(PS_count)
