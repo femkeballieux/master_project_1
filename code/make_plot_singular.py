@@ -15,7 +15,7 @@ path_laptop = 'C:/Users/Femke/Documents/GitHub/master_project_1/data'
 path_vdesk= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
 
 #read in the data
-hdulist = fits.open(path_laptop + '/fit_vals_power_law_NVSS_intflux.fits')
+hdulist = fits.open(path_vdesk + '/master_LoLSS_with_inband.fits')
 high_survey = 'NVSS' #could also be first, but we use NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
@@ -31,7 +31,6 @@ alpha_low = tbdata['alpha_low']
 alpha_high = tbdata['alpha_high']
 a_low = tbdata['a_low']
 a_high = tbdata['a_high']
-
 flux_LoTSS = tbdata['LoTSS_flux']
 flux_LoLSS = tbdata['LoLSS_flux']
 flux_NVSS = tbdata['NVSS_flux']
@@ -41,6 +40,12 @@ flux_FIRST = tbdata['FIRST_flux']
 flux_inband_low = tbdata['S_inband_low']
 flux_inband_mid = tbdata['S_inband_mid']
 flux_inband_high = tbdata['S_inband_high']
+flux_channel0 = tbdata['channel0_flux']
+flux_channel1 = tbdata['channel1_flux']
+flux_channel2 = tbdata['channel2_flux']
+flux_channel3 = tbdata['channel3_flux']
+flux_channel4 = tbdata['channel4_flux']
+flux_channel5 = tbdata['channel5_flux']
 
 error_LoTSS = tbdata['e_LoTSS_flux']
 error_LoLSS = tbdata['e_LoLSS_flux']
@@ -51,14 +56,21 @@ error_FIRST = tbdata['e_FIRST_flux']
 error_inband_low = tbdata['e_S_inband_low']
 error_inband_mid = tbdata['e_S_inband_mid']
 error_inband_high = tbdata['e_S_inband_high']
+error_channel0 = tbdata['e_channel0_flux']
+error_channel1 = tbdata['e_channel1_flux']
+error_channel2 = tbdata['e_channel2_flux']
+error_channel3 = tbdata['e_channel3_flux']
+error_channel4 = tbdata['e_channel4_flux']
+error_channel5 = tbdata['e_channel5_flux']
 
 
 #list of frequencies in MHz
-freq_list = 144., 1400., 150., 74., 54., 1400.001, 128., 144.00001, 160.
+freq_list = 144., 1400., 150., 74., 54., 1400.001, 128., 144.00001, 160., 44., 48.,52. , 56. , 60. , 64. 
 freq_array = np.array(freq_list)
 
 #labels in order they are used
-label_list = ['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high']    
+label_list = ['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high', \
+              'LoLLS_ch0', 'LoLLS_ch1', 'LoLLS_ch2', 'LoLLS_ch3', 'LoLLS_ch4', 'LoLLS_ch5' ]    
 
 #used for plotting
 x_range_low = np.linspace(50, 144, 1000)
@@ -112,9 +124,12 @@ def make_sed_singular(galaxy_name, use_index=False):
         
     #for this particular galaxy the fluxes    
     flux_list = [flux_LoTSS[index],flux_NVSS[index],flux_TGSS[index], flux_VLSSr[index],flux_LoLSS[index],   \
-                 flux_FIRST[index], flux_inband_low[index], flux_inband_mid[index], flux_inband_high[index] ]
+                 flux_FIRST[index], flux_inband_low[index], flux_inband_mid[index], flux_inband_high[index], flux_channel0[index],\
+                     flux_channel1[index], flux_channel2[index], flux_channel3[index], flux_channel4[index], flux_channel5[index]]
     error_list = [error_LoTSS[index],error_NVSS[index],error_TGSS[index], error_VLSSr[index],error_LoLSS[index],   \
-                 error_FIRST[index], error_inband_low[index], error_inband_mid[index], error_inband_high[index] ]
+                 error_FIRST[index], error_inband_low[index], error_inband_mid[index], error_inband_high[index], \
+                     error_channel0[index], error_channel1[index], error_channel2[index], error_channel3[index],\
+                         error_channel4[index], error_channel5[index]]
     flux_array = np.array(flux_list)
     error_array = np.array(error_list)
     
@@ -151,5 +166,5 @@ def make_sed_singular(galaxy_name, use_index=False):
 #cannot find '110038+523620 from Martjes paper'
 #'104713+470331' example PS
 #'104657+482724' example non-PS
-name_of_interest = '104713+470331'
+name_of_interest = '104657+482724'
 make_sed_singular(name_of_interest, use_index=False)
