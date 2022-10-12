@@ -6,7 +6,7 @@ import os
 
 
 os.system('java -jar topcat-full.jar -stilts \
-          tmatchn matcher=sky multimode=pairs nin=7 params=15 \
+          tmatchn join1=always matcher=sky multimode=pairs nin=7 params=15 \
     in1=C:\\Users\\Femke\\Documents\\GitHub\\master_project_1\\data\\fit_vals_power_law_NVSS_intflux.fits values1="LoLSS_RA LoLSS_Dec" \
     in2=C:\\Users\\Femke\\Documents\\GitHub\\master_project_1\\data\\LoLSS_inband\\channel_0_source.fits values2="RA DEC" \
     in3=C:\\Users\\Femke\\Documents\\GitHub\\master_project_1\\data\\LoLSS_inband\\channel_1_source.fits values3="RA DEC" \
