@@ -54,10 +54,11 @@ error_inband_high = tbdata['e_S_inband_high']
 
 
 #list of frequencies in MHz
-freq_list =     144., 1400., 150., 74., 54., 1400.001, 128., 144.00001, 160.
-freq_array=np.array(freq_list)
+freq_list = 144., 1400., 150., 74., 54., 1400.001, 128., 144.00001, 160.
+freq_array = np.array(freq_list)
+
 #labels in order they are used
-label_list=['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high']    
+label_list = ['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high']    
 
 #used for plotting
 x_range_low = np.linspace(50, 144, 1000)
@@ -70,13 +71,14 @@ def find_index(galaxy_name, name_list = name_list):
     """
     return int(np.where(name_list == galaxy_name )[0])
 
-def curve(freq, freq_peak, alphathick, alphathin): 
-    # Model taken from Tschager et al. 2003. General fit not based on any physics.
-	return freq_peak/(1 -np.exp(-1))*((freq/freq_peak)**alphathick)*\
-                (1 - np.exp(-(freq/freq_peak)**(alphathin-alphathick)))
+def curve(freq, freq_peak, flux_peak, alphathick, alphathin): 
+    """
+    Model taken from Tschager et al. 2003. General fit not based on any physics.
+    """
+    return flux_peak/(1 -np.exp(-1))*((freq/freq_peak)**alphathick)*(1-np.exp(-(freq/freq_peak)**(alphathin-alphathick)))
 
 
-def spectral_index_eval_curve(freq,flux,flux_err):
+def spectral_index_eval_curve(freq, flux, flux_err):
     fluxposind = np.where((flux > 0)) # need to concatenate and insert to make sure you still select TGSS, MRC, SUMSS and NVSS data
     if len(fluxposind[0]) == 0: # some sources are all as not detected in subbands? 
         return 'No flux?'
@@ -87,7 +89,7 @@ def spectral_index_eval_curve(freq,flux,flux_err):
 
     peakfreq = freqplot[np.where(fluxplot == max(fluxplot))]
     peakflux = max(fluxplot)
-    p0gen = [peakfreq[0],0.8,-0.7]
+    p0gen = [peakfreq[0], peakflux, 0.8, -0.7]
 
     try:
         poptgen, pcovgen = opt.curve_fit(curve, freqplot, fluxplot, p0 = p0gen, sigma = flux_errplot, maxfev = 10000)
@@ -97,22 +99,24 @@ def spectral_index_eval_curve(freq,flux,flux_err):
     
 
 
-def make_sed_singular(galaxy_name, alpha_low=alpha_low, use_index=False):
+def make_sed_singular(galaxy_name, use_index=False):
     """
     returns the sed for a singular galaxy
     """
     #extract the data
     if use_index:
-        index=galaxy_name
+        index = galaxy_name
+        #TODO: make sure the name goes right when you do this
     else:
         index = find_index(galaxy_name)
         
+    #for this particular galaxy the fluxes    
     flux_list = [flux_LoTSS[index],flux_NVSS[index],flux_TGSS[index], flux_VLSSr[index],flux_LoLSS[index],   \
                  flux_FIRST[index], flux_inband_low[index], flux_inband_mid[index], flux_inband_high[index] ]
     error_list = [error_LoTSS[index],error_NVSS[index],error_TGSS[index], error_VLSSr[index],error_LoLSS[index],   \
                  error_FIRST[index], error_inband_low[index], error_inband_mid[index], error_inband_high[index] ]
-    flux_array=np.array(flux_list)
-    error_array=np.array(error_list)
+    flux_array = np.array(flux_list)
+    error_array = np.array(error_list)
     
     #general plotting settings
     plt.figure(figsize=(10,8))
@@ -137,13 +141,15 @@ def make_sed_singular(galaxy_name, alpha_low=alpha_low, use_index=False):
     #fit the curved models
     fluxplot, freqplot, flux_errplot, poptgen, pcovgen = \
                 spectral_index_eval_curve(freq_array, flux_array, error_array)
-    print(poptgen, pcovgen)
-    
-    plt.plot(x_range_full, curve(x_range_full, poptgen[0],poptgen[1] , poptgen[2] ), color='red', label='curve')
+    print('parameters for the curve are', poptgen )
+    plt.plot(x_range_full, curve(x_range_full, poptgen[0],poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
     
     plt.legend()
     plt.show()
 
-#104732+472532 no longer PS
-name_of_interest = '104713+470331' 
+#104732+472532 no longer PS, was in Martjes paper
+#cannot find '110038+523620 from Martjes paper'
+#'104713+470331' example PS
+#'104657+482724' example non-PS
+name_of_interest = '104713+470331'
 make_sed_singular(name_of_interest, use_index=False)
