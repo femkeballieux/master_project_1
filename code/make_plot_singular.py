@@ -103,15 +103,20 @@ def spectral_index_eval_curve(freq, flux, flux_err):
     peakflux = max(fluxplot)
     p0gen = [peakfreq[0], peakflux, 0.8, -0.7]
 
+    did_it_fit = True
     try:
         poptgen, pcovgen = opt.curve_fit(curve, freqplot, fluxplot, p0 = p0gen, sigma = flux_errplot, maxfev = 10000)
     except (RuntimeError, TypeError, ValueError):
-        return 'Curve_fit could not fit curve model.'
-    return (fluxplot, freqplot, flux_errplot, poptgen, pcovgen)
+        print('Curve_fit could not fit curve model.')
+        did_it_fit = False
+        return (fluxplot,freqplot,flux_errplot,0,0, did_it_fit)
+        
+        print('fitting went right')
+    return (fluxplot, freqplot, flux_errplot, poptgen, pcovgen, did_it_fit)
     
 
 
-def make_sed_singular(galaxy_name, use_index=False):
+def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     """
     returns the sed for a singular galaxy
     """
@@ -154,17 +159,36 @@ def make_sed_singular(galaxy_name, use_index=False):
              color='black', label='powerlaw high') 
     
     #fit the curved models
-    fluxplot, freqplot, flux_errplot, poptgen, pcovgen = \
+    
+    fluxplot, freqplot, flux_errplot, poptgen, pcovgen, did_it_fit = \
                 spectral_index_eval_curve(freq_array, flux_array, error_array)
     print('parameters for the curve are', poptgen )
-    plt.plot(x_range_full, curve(x_range_full, poptgen[0],poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
+    if did_it_fit:
+        plt.plot(x_range_full, curve(x_range_full, poptgen[0],poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
     
     plt.legend()
+    if save_fig:
+        plt.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/code/PS_seds/'+ galaxy_name + '.pdf')
+        print('figure saved for', galaxy_name)
     plt.show()
 
 #104732+472532 no longer PS, was in Martjes paper
-#cannot find '110038+523620 from Martjes paper'
 #'104713+470331' example PS
 #'104657+482724' example non-PS
-name_of_interest = '104657+482724'
-make_sed_singular(name_of_interest, use_index=False)
+
+#name_of_interest = '110855+484543'
+#make_sed_singular(name_of_interest, use_index=False, save_fig=True)
+
+#TODO: fix plotting colors and labels
+#TODO: make script for all PS sources
+
+PS_index_list=[]
+counter=0
+for i, name in enumerate(name_list):
+    if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
+        PS_index_list.append(i)
+        make_sed_singular(name, save_fig=True)
+        counter +=1
+        print(counter, '/767')
+
+        
