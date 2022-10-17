@@ -187,7 +187,7 @@ counter=0
 for i, name in enumerate(name_list):
     if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
         PS_index_list.append(i)
-        make_sed_singular(name, save_fig=True)
+        #make_sed_singular(name, save_fig=True)
         counter +=1
         print(counter, '/767')
 
