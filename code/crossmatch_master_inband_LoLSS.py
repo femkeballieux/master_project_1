@@ -1,5 +1,5 @@
 """
-Code written by Femke Ballieux, takes in the master sample and crossmatches it with 
+Code written by Femke Ballieux, takes in the master sample and crossmatches it with LoLSS inband spectra
 """
 #run on laptop
 import os
