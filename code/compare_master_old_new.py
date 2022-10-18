@@ -74,6 +74,22 @@ for i, name in enumerate(Martje_name_array):
                 nan_count_2 +=1
             else: #If not ps in my sample, but ps in her sample, but not nan, print flux values
                 print(i, name, "mine: ", my_flux_LoLSS[i], ' Martje: ' , Martje_flux_LoLSS[i], 'ratio:', my_flux_LoLSS[i]/Martje_flux_LoLSS[i])
+
+                flux_array=np.array([my_flux_LoTSS[i],my_flux_NVSS[i]] )
+                freq_array=np.array([144., 1400.])
+                plt.figure(figsize=(10,8))
+                plt.scatter(freq_array, flux_array, label='LoTSS, NVSS', color='black')
+                plt.scatter(54., Martje_flux_LoLSS[i], label='old LoLSS')
+                plt.scatter(54., my_flux_LoLSS[i], label='new LoLSS')
+                plt.xscale('log')
+                plt.yscale('log')
+                plt.title(my_name_array[i])
+                plt.xlabel('freq in MHZ')
+                plt.ylabel('flux in Jy')
+                plt.legend()
+            
+                plt.savefig(path_vdesk + 'compare_sed_old_new/' + my_name_array[i] + '.pdf', bboxinches='tight')
+                
 print('')
 print ('In Martjes sample there are ', Martje_counter_2 ,' PS sources')
 print(my_counter_2, ' of these sources are also in my master sample' )
@@ -81,14 +97,3 @@ print(nan_count_2, 'of these remaining ', Martje_counter_2 - my_counter_2, 'had 
 print("we thus need to explain", Martje_counter_2-my_counter_2-nan_count_2, 'sources')
 
  
-index=7888
-flux_array=np.array([my_flux_LoTSS[index],my_flux_NVSS[index]] )
-freq_array=np.array([144., 1400.])
-plt.figure(figsize=(10,8))
-plt.scatter(freq_array, flux_array, label='LoTSS, NVSS', color='black')
-plt.scatter(54., Martje_flux_LoLSS[index], label='old LoLSS')
-plt.scatter(54., my_flux_LoLSS[index], label='new LoLSS')
-plt.title(my_name_array[index])
-plt.xlabel('freq in MHZ')
-plt.ylabel('flux in Jy')
-plt.legend()
