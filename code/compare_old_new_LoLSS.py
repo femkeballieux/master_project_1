@@ -39,4 +39,5 @@ plt.ylabel('Number of sources')
 plt.savefig(path_laptop+'/compare_old_new_LoLSS/hist_all_sources.pdf', bboxinches='tight')
 
 print('max:',max(ratio_array), 'min:', min(ratio_array))
-print(np.mean(ratio_array))
+print('mean:', np.std(ratio_array))
+print('std', np.mean(ratio_array))
