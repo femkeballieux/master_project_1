@@ -11,12 +11,15 @@ from astropy.io import fits
 path_laptop = 'C:/Users/Femke/Documents/GitHub/master_project_1/data'
 path_vdesk= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
 
+path = path_vdesk
+
 #read in the data
-hdulist = fits.open(path_laptop + '/crossmatch_old_new_master.fits')
+hdulist = fits.open(path + '/crossmatch_old_new_master.fits')
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 hdulist.close()
 
+#get the right columns
 my_name_array= np.array(tbdata['LoTSS_name_1'])
 Martje_name_array = tbdata['LoTSS_name_2']
 
@@ -71,7 +74,7 @@ plt.hist(ratio_in_mine, bins=8)
 plt.title('PS in DR1, not in PDR')
 plt.xlabel('flux DR1/ flux PDR')
 plt.ylabel('Number of sources')
-plt.savefig(path_laptop+'/compare_old_new_LoLSS/in_mine_not_Martje.pdf', bboxinches='tight')
+plt.savefig(path+'/compare_old_new_LoLSS/in_mine_not_Martje.pdf', bboxinches='tight')
 print('mean:',np.mean(ratio_in_mine),'Std in mine:',np.std(ratio_in_mine))
 
 
@@ -98,21 +101,7 @@ for i, name in enumerate(Martje_name_array):
                 ratio_in_Martje.append(my_flux_LoLSS[i]/Martje_flux_LoLSS[i])
                 RA_in_Martje.append(RA[i])
                 Dec_in_Martje.append(Dec[i])
-#                flux_array=np.array([my_flux_LoTSS[i],my_flux_NVSS[i]] )
-#                freq_array=np.array([144., 1400.])
-#                plt.figure(figsize=(10,8))
-#                plt.scatter(freq_array, flux_array, label='LoTSS, NVSS', color='black')
-#                plt.scatter(54., Martje_flux_LoLSS[i], label='old LoLSS')
-#                plt.scatter(54., my_flux_LoLSS[i], label='new LoLSS')
-#                plt.xscale('log')
-#                plt.yscale('log')
-#                plt.title(my_name_array[i])
-#                plt.xlabel('freq in MHZ')
-#                plt.ylabel('flux in Jy')
-#                plt.legend()
-#            
-#                plt.savefig(path_vdesk + 'compare_sed_old_new/' + my_name_array[i] + '.pdf', bboxinches='tight')
-#                
+                
 print('')
 print ('In Martjes sample there are ', Martje_counter_2 ,' PS sources')
 print(my_counter_2, ' of these sources are also in my master sample' )
@@ -128,21 +117,25 @@ plt.scatter(np.array(RA_in_Martje), np.array(Dec_in_Martje), label='Is PS using 
 plt.xlabel('RA', fontsize=14)
 plt.ylabel('Dec', fontsize=14)
 plt.legend()
-plt.savefig(path_laptop + '/compare_old_new_LoLSS/RA_Dec.pdf', bboxinches='tight')
+plt.savefig(path + '/compare_old_new_LoLSS/RA_Dec.pdf', bboxinches='tight')
 
 plt.figure(figsize=(10,8))
 plt.hist(ratio_in_Martje, bins=17)
 plt.title('PS in PDR, non-PS in DR1')
 plt.xlabel('flux DR1/ flux PDR')
 plt.ylabel('Number of sources')
-plt.savefig(path_laptop+'/compare_old_new_LoLSS/in_Martje_not_mine.pdf', bboxinches='tight')
+plt.savefig(path+'/compare_old_new_LoLSS/in_Martje_not_mine.pdf', bboxinches='tight')
 print('mean:',np.mean(ratio_in_Martje),'Std In Martje:',np.std(ratio_in_Martje))
  
 ratio_isolated = []
+my_flux_isolated = []
+Martje_flux_isolated = []
 for i, name in enumerate(my_name_array):
     if my_flux_LoLSS[i] >= 0.:
         if Martje_flux_LoLSS[i] >=0.:
             ratio_isolated.append(my_flux_LoLSS[i]/Martje_flux_LoLSS[i])
+            my_flux_isolated.append(my_flux_LoLSS[i])
+            Martje_flux_isolated.append(Martje_flux_LoLSS[i])
  
 ratio_isolated_array = np.array(ratio_isolated)           
 print('isolated:', np.mean(ratio_isolated_array))
@@ -153,7 +146,28 @@ plt.hist(ratio_isolated_array, bins=70)
 plt.title('All isolated, unresolved sources present in both samples')
 plt.xlabel('flux DR1/ flux PDR')
 plt.ylabel('Number of sources')
-plt.savefig(path_laptop+'/compare_old_new_LoLSS/hist_isolated.pdf', bboxinches='tight')
+plt.savefig(path+'/compare_old_new_LoLSS/hist_isolated.pdf', bboxinches='tight')
+
+plt.figure(figsize=(10,8))
+plt.scatter( ratio_isolated_array,my_flux_isolated,)
+plt.title('All isolated, unresolved sources present in both samples')
+plt.ylabel('flux DR1')
+plt.xlabel('ratio flux DR1/PDR')
+plt.vlines(1, ymin=0, ymax=18)
+plt.savefig(path+'/compare_old_new_LoLSS/DR1_flux_ratio.pdf', bboxinches='tight')
+
+plt.figure(figsize=(10,8))
+plt.scatter( ratio_isolated_array,Martje_flux_isolated,)
+plt.title('All isolated, unresolved sources present in both samples ')
+plt.ylabel('flux PDR')
+plt.xlabel('ratio flux DR1/PDR')
+plt.vlines(1, ymin=0, ymax=18)
+plt.savefig(path+'/compare_old_new_LoLSS/PDR_flux_ratio.pdf', bboxinches='tight')
+
+
+
+
+
 
 
 
