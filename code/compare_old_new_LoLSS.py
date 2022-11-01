@@ -28,17 +28,39 @@ old_Isl_rms = tbdata['Isl_rms_2']
 
 
 #get the ratios of all the sources that are present in both samples
+#SNR and index of the extremes as well
 ratio_list = []
 new_SNR = []
 old_SNR = []
+extreme_index=[]
 for i, name in enumerate(new_name_array):
     ratio = new_flux_LoLSS[i]/old_flux_LoLSS[i]
     ratio_list.append(ratio)
     new_SNR.append(new_flux_LoLSS[i]/new_Isl_rms[i])
     old_SNR.append(old_flux_LoLSS[i]/old_Isl_rms[i])
-
-
     
+    if ratio >= 3:
+        extreme_index.append(i)
+    elif ratio <= (1/3):
+        extreme_index.append(i)
+
+       
+#Make a new table of just the extremes so we can check in topcat
+col1 = fits.Column(name='LoTSS_name', format = '34A', array = new_name_array[np.array(extreme_index)])
+col2 = fits.Column(name='RA', format = 'E', array= tbdata['RA_1'][np.array(extreme_index)])
+col3 = fits.Column(name='Dec', format = 'E', array = tbdata['Dec_1'][np.array(extreme_index)])
+col4 = fits.Column(name='old_flux_LoLSS', format = 'E', array = old_flux_LoLSS[np.array(extreme_index)])
+col5 = fits.Column(name='new_flux_LoLSS', format = 'E', array = new_flux_LoLSS[np.array(extreme_index)])
+
+cols = fits.ColDefs([col1, col2, col3,col4, col5])
+tbhdu = fits.BinTableHDU.from_columns(cols)  
+print("#----------------------------------------------------------#")
+print('Saving to a fits file.')  
+
+tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/compare_old_new_LoLSS/locations_extreme_outliers.fits', overwrite = True)
+
+
+#Ratio histogram   
 ratio_array= np.array(ratio_list)
 plt.figure(figsize=(10,8))
 plt.hist(ratio_array, bins=70)
@@ -47,10 +69,12 @@ plt.xlabel('flux DR1/ flux PDR')
 plt.ylabel('Number of sources')
 plt.savefig(path_vdesk+'/compare_old_new_LoLSS/hist_all_sources.pdf', bboxinches='tight')
 
+
 plt.figure(figsize=(10,8))
 plt.scatter( new_SNR, ratio_list, alpha=0.1)
 plt.title('All of LoLSS')
 plt.xlabel('SNR DR1')
+plt.xscale('log')
 plt.ylabel('ratio flux DR1/PDR')
 plt.hlines(1, xmin=0, xmax=5000)
 plt.xlim(np.min(new_SNR),5000)
@@ -60,6 +84,7 @@ plt.figure(figsize=(10,8))
 plt.scatter( old_SNR, ratio_list, alpha=0.1)
 plt.title('All of LoLSS')
 plt.xlabel('SNR PDR')
+plt.xscale('log')
 plt.ylabel('ratio flux DR1/PDR')
 plt.hlines(1, xmin=0, xmax=1500)
 plt.xlim(np.min(old_SNR),1200)
