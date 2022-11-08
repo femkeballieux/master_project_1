@@ -326,9 +326,12 @@ col36 = fits.Column(name='S_inband_mid', format = 'E', array = S_inband_mid[S_ma
 col37 = fits.Column(name='e_S_inband_mid', format = 'E', array = e_S_inband_mid[S_match])
 col38 = fits.Column(name='S_inband_high', format = 'E', array = S_inband_high[S_match])
 col39 = fits.Column(name='e_S_inband_high', format = 'E', array = e_S_inband_high[S_match])
+col40 = fits.Column(name='LoLSS_rms', format = 'E',  array = tbdata['Isl_rms_5'][S_match])
+col41 = fits.Column(name='LoLSS_maj', format = 'E', array = tbdata['Maj_5'][S_match])
+col42 = fits.Column(name='LoLSS_S_code', format = '1A', array = tbdata['S_Code_5'][S_match])
 
 cols = fits.ColDefs([col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12, col13, col14, col15, col16, col17, col18, col19,\
-    col20, col21, col22, col23, col24, col25, col26, col27, col28, col29, col30, col31, col32, col33, col34, col35, col36, col37, col38, col39])
+    col20, col21, col22, col23, col24, col25, col26, col27, col28, col29, col30, col31, col32, col33, col34, col35, col36, col37, col38, col39, col40, col41, col42])
 tbhdu = fits.BinTableHDU.from_columns(cols)  
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  

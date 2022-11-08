@@ -61,17 +61,17 @@ tbhdu = fits.BinTableHDU.from_columns(cols)
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  
 
-tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/compare_old_new_LoLSS/locations_extreme_outliers.fits', overwrite = True)
+#tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/compare_old_new_LoLSS/locations_extreme_outliers.fits', overwrite = True)
 
 
-#Ratio histogram   
-ratio_array= np.array(ratio_list)
-plt.figure(figsize=(10,8))
-plt.hist(ratio_array, bins=70)
-plt.title('All LoLSS data present in both samples, only S')
-plt.xlabel('flux DR1/ flux PDR')
-plt.ylabel('Number of sources')
-plt.savefig(path_vdesk+'/compare_old_new_LoLSS/hist_all_sources.pdf', bboxinches='tight')
+# #Ratio histogram   
+# ratio_array= np.array(ratio_list)
+# plt.figure(figsize=(10,8))
+# plt.hist(ratio_array, bins=70)
+# plt.title('All LoLSS data present in both samples, only S')
+# plt.xlabel('flux DR1/ flux PDR')
+# plt.ylabel('Number of sources')
+# plt.savefig(path_vdesk+'/compare_old_new_LoLSS/hist_all_sources.pdf', bboxinches='tight')
 
 
 plt.figure(figsize=(10,8))
