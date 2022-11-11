@@ -25,8 +25,7 @@ print(orig_cols)
 #get some useful arrays. Units should be allright
 SNR = tbdata['LoLSS_flux']/tbdata['LoLSS_rms']
 #These are all the PS sources with some demands 
-mask = (tbdata['alpha_low'] >= 0.1) & (tbdata['alpha_high']<=0) & (tbdata['LoLSS_S_code'] == 'S') & (tbdata['LoLSS_maj']<=30)\
-    & (SNR >=1.)
+mask = (tbdata['alpha_low'] >= 0.1) & (tbdata['alpha_high']<=0) #& (tbdata['LoLSS_S_code'] == 'S') & (tbdata['LoLSS_maj']<=30) & (SNR >=1.)
 
 print(len(tbdata['RA'][mask])) 
 
@@ -39,6 +38,8 @@ Changes in number of sources
 #734 only LoLSS S_code> apparantly this matters?
 #732 when also maj<30
 #482 when SNR>10
+
+However, after meeting with Joe we decided to do VLASS atleast for the entire sample of PS sources, things will always change after some time
 """
 plt.figure(figsize=(10,8))
 plt.hist(SNR[SNR<=200], bins=100, zorder=1)
@@ -52,3 +53,4 @@ plt.show()
 #PS_to_write = tbdata[:][mask] #This is how you get all columns, only masked rows
 tbdata.remove_rows(np.where(~mask))
 tbdata.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_sample.fits', format='fits', overwrite = True)
+tbdata.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_sample.csv', format='csv', overwrite = True)
