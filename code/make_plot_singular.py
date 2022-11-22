@@ -149,7 +149,16 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     #Plot the data
     for s in range(len(freq_list)):
         if flux_list[s] != 0:
-            plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
+            if 'LoLLS_ch' in str(label_list[s]):
+                print(label_list[s])
+                plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
+                         label='LoLSS inband', zorder=10, fmt='o', color='darkgreen', alpha=0.5)
+            elif 'inband_' in str(label_list[s]):
+                print(label_list[s])
+                plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
+                         label='LoTSS inband', zorder=10, fmt='o', color='purple', alpha=0.5)
+            else:
+                plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
                          label=label_list[s], zorder=10, fmt='o')
     
     #plot the power law fits  
@@ -172,22 +181,18 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
         print('figure saved for', galaxy_name)
     plt.show()
 
-#104732+472532 no longer PS, was in Martjes paper
-#'104713+470331' example PS
-#'104657+482724' example non-PS
 
 #name_of_interest = '110855+484543'
 #make_sed_singular(name_of_interest, use_index=False, save_fig=True)
 
 #TODO: fix plotting colors and labels
-#TODO: make script for all PS sources
 
 PS_index_list=[]
 counter=0
 for i, name in enumerate(name_list):
     if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
         PS_index_list.append(i)
-        #make_sed_singular(name, save_fig=True)
+        make_sed_singular(name, save_fig=False)
         counter +=1
         print(counter, '/767')
 
