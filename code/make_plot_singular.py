@@ -15,18 +15,19 @@ path_laptop = 'C:/Users/Femke/Documents/GitHub/master_project_1/data'
 path_vdesk= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
 
 #read in the data
-hdulist = fits.open(path_vdesk + '/master_LoLSS_with_inband.fits')
+hdulist = fits.open(path_vdesk + 'PS_with_vlass.fits')
 high_survey = 'NVSS' #could also be first, but we use NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 hdulist.close()
 
 #print the columnnames
-#print(orig_cols)
+print(orig_cols)
 
 #make lists of the most used columns
 name_list = tbdata['LoTSS_name']
 
+#TODO: check that all fluxes indeed in jansky
 alpha_low = tbdata['alpha_low']
 alpha_high = tbdata['alpha_high']
 a_low = tbdata['a_low']
@@ -63,19 +64,42 @@ error_channel3 = tbdata['e_channel3_flux']
 error_channel4 = tbdata['e_channel4_flux']
 error_channel5 = tbdata['e_channel5_flux']
 
+flux_vlass = tbdata['int_flux_VLASS']
+e_flux_vlass = tbdata['E_int_flux_VLASS']
+
+
+#frequencies all in Mhz
+freq_LoTSS= 144.
+freq_NVSS = 1400.
+freq_TGSS = 150.
+freq_VLSSr = 74.
+freq_LoLSS = 54.
+freq_FIRST = 1400.001
+freq_inband_low = 128. 
+freq_inband_mid =  144.00001
+freq_inband_high = 160.
+freq_LoLLS_ch0 = 44.
+freq_LoLLS_ch1 = 48.
+freq_LoLLS_ch2 = 52.
+freq_LoLLS_ch3 = 56.
+freq_LoLLS_ch4 = 60.
+freq_LoLLS_ch5 = 64.
+freq_vlass = 3000.
 
 #list of frequencies in MHz
-freq_list = 144., 1400., 150., 74., 54., 1400.001, 128., 144.00001, 160., 44., 48.,52. , 56. , 60. , 64. 
+freq_list = [freq_LoTSS, freq_NVSS, freq_TGSS, freq_VLSSr, freq_LoLSS, freq_FIRST , freq_inband_low,\
+            freq_inband_mid, freq_inband_high,freq_LoLLS_ch0, freq_LoLLS_ch1, freq_LoLLS_ch2 , freq_LoLLS_ch3 \
+                , freq_LoLLS_ch4 , freq_LoLLS_ch5, freq_vlass ]
 freq_array = np.array(freq_list)
 
 #labels in order they are used
 label_list = ['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high', \
-              'LoLLS_ch0', 'LoLLS_ch1', 'LoLLS_ch2', 'LoLLS_ch3', 'LoLLS_ch4', 'LoLLS_ch5' ]    
+              'LoLLS_ch0', 'LoLLS_ch1', 'LoLLS_ch2', 'LoLLS_ch3', 'LoLLS_ch4', 'LoLLS_ch5', 'VLASS' ]    
 
 #used for plotting
 x_range_low = np.linspace(50, 144, 1000)
 x_range_high = np.linspace(144, 1400, 1000)
-x_range_full= np.linspace(50, 1400, 1000)
+x_range_full= np.linspace(50, 3000, 1000)
 
 def find_index(galaxy_name, name_list = name_list):
     """
@@ -130,11 +154,12 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     #for this particular galaxy the fluxes    
     flux_list = [flux_LoTSS[index],flux_NVSS[index],flux_TGSS[index], flux_VLSSr[index],flux_LoLSS[index],   \
                  flux_FIRST[index], flux_inband_low[index], flux_inband_mid[index], flux_inband_high[index], flux_channel0[index],\
-                     flux_channel1[index], flux_channel2[index], flux_channel3[index], flux_channel4[index], flux_channel5[index]]
+                     flux_channel1[index], flux_channel2[index], flux_channel3[index], flux_channel4[index], flux_channel5[index],\
+                         flux_vlass[index]]
     error_list = [error_LoTSS[index],error_NVSS[index],error_TGSS[index], error_VLSSr[index],error_LoLSS[index],   \
                  error_FIRST[index], error_inband_low[index], error_inband_mid[index], error_inband_high[index], \
                      error_channel0[index], error_channel1[index], error_channel2[index], error_channel3[index],\
-                         error_channel4[index], error_channel5[index]]
+                         error_channel4[index], error_channel5[index], e_flux_vlass[index]]
     flux_array = np.array(flux_list)
     error_array = np.array(error_list)
     
@@ -148,13 +173,11 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     
     #Plot the data
     for s in range(len(freq_list)):
-        if flux_list[s] != 0:
+        if flux_list[s] != 0.:
             if 'LoLLS_ch' in str(label_list[s]):
-                print(label_list[s])
                 plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
                          label='LoLSS inband', zorder=10, fmt='o', color='darkgreen', alpha=0.5)
             elif 'inband_' in str(label_list[s]):
-                print(label_list[s])
                 plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
                          label='LoTSS inband', zorder=10, fmt='o', color='purple', alpha=0.5)
             else:
@@ -182,8 +205,6 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     plt.show()
 
 
-#name_of_interest = '110855+484543'
-#make_sed_singular(name_of_interest, use_index=False, save_fig=True)
 
 #TODO: fix plotting colors and labels
 
@@ -192,7 +213,7 @@ counter=0
 for i, name in enumerate(name_list):
     if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
         PS_index_list.append(i)
-        make_sed_singular(name, save_fig=False)
+        make_sed_singular(name, save_fig=True)
         counter +=1
         print(counter, '/767')
 
