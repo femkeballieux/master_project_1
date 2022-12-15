@@ -92,7 +92,7 @@ hdulist.close()# fit curvature models with rms cuts
 S_LoTSS, stat_e_S_LoTSS = np.array(tbdata['Total_flux'])/1000., np.array(tbdata['E_Total_flux'])/1000. # Jy, TOTAL flux, not peak flux
 e_S_LoTSS = np.sqrt(stat_e_S_LoTSS**2 + (0.1*S_LoTSS)**2) # Combine the statistical LoTSS error and overall error on LoTSS
 
-S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['e_S1_4'])/1000. # Jy
+S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['S1_4'])/1000. # Jy
 S_NVSS, e_S_NVSS = np.where(np.isnan(S_NVSS), 0, S_NVSS), np.where(np.isnan(S_NVSS), 0, e_S_NVSS)
 
 S_TGSS, e_S_TGSS = np.array(tbdata['Stotal'])/1000., np.array(tbdata['e_Stotal'])/1000. # Jy/beam

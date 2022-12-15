@@ -9,10 +9,10 @@ import matplotlib.cm as cm
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.stats import iqr
 
-plt.style.use('style.mplstyle')
+#plt.style.use('style.mplstyle')
 
 
-hdulist = fits.open('data/fit_vals_power_law_NVSS_intflux.fits')
+hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/fit_vals_power_law_NVSS_intflux.fits')
 high_survey = 'NVSS'
 
 tbdata = hdulist[1].data
@@ -237,7 +237,7 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
     ax.grid(True)
 
     #ax2.set_title(r'Color-color diagram $\alpha_{low}, \alpha_{high}$. Brightness limit of ' + str(brightness_limit) + 'Jy', fontsize = 30)
-    plt.savefig('colour_colour_plots/colour_colour_LoLSS_' + high_survey + '_' + str(brightness_limit) + '_intflux.png')
+    plt.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/colour_colour_plots/colour_colour_LoLSS_' + high_survey + '_' + str(brightness_limit) + '_intflux.png')
     # plt.show()
 
     a_low_siqr = iqr(alpha_low)/2

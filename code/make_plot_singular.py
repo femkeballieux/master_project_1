@@ -27,7 +27,6 @@ print(orig_cols)
 #make lists of the most used columns
 name_list = tbdata['LoTSS_name']
 
-#TODO: check that all fluxes indeed in jansky
 alpha_low = tbdata['alpha_low']
 alpha_high = tbdata['alpha_high']
 a_low = tbdata['a_low']
@@ -65,7 +64,7 @@ error_channel4 = tbdata['e_channel4_flux']
 error_channel5 = tbdata['e_channel5_flux']
 
 flux_vlass = tbdata['int_flux_VLASS']
-e_flux_vlass = tbdata['E_int_flux_VLASS']
+e_flux_vlass = tbdata['E_int_flux_VLASS_full']
 
 
 #frequencies all in Mhz
@@ -87,16 +86,17 @@ freq_LoLLS_ch5 = 64.
 freq_vlass = 3000.
 
 #list of frequencies in MHz
-freq_list = [freq_LoTSS, freq_NVSS, freq_TGSS, freq_VLSSr, freq_LoLSS, freq_FIRST , freq_inband_low,\
+freq_array = np.array([freq_LoTSS, freq_NVSS, freq_TGSS, freq_VLSSr, freq_LoLSS, freq_FIRST , freq_inband_low,\
             freq_inband_mid, freq_inband_high,freq_LoLLS_ch0, freq_LoLLS_ch1, freq_LoLLS_ch2 , freq_LoLLS_ch3 \
-                , freq_LoLLS_ch4 , freq_LoLLS_ch5, freq_vlass ]
-freq_array = np.array(freq_list)
+                , freq_LoLLS_ch4 , freq_LoLLS_ch5, freq_vlass ])
+
 
 #labels in order they are used
-label_list = ['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high', \
-              'LoLLS_ch0', 'LoLLS_ch1', 'LoLLS_ch2', 'LoLLS_ch3', 'LoLLS_ch4', 'LoLLS_ch5', 'VLASS' ]    
+label_array = np.array(['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inband_low', 'inband_mid', 'inband_high', \
+              'LoLLS_ch0', 'LoLLS_ch1', 'LoLLS_ch2', 'LoLLS_ch3', 'LoLLS_ch4', 'LoLLS_ch5', 'VLASS' ] )   
 
-#used for plotting
+#used for plotting the spectral indices
+#TODO: add wenss
 x_range_low = np.linspace(50, 144, 1000)
 x_range_high = np.linspace(144, 1400, 1000)
 x_range_full= np.linspace(50, 3000, 1000)
@@ -144,24 +144,17 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     """
     returns the sed for a singular galaxy
     """
-    #extract the data
-    if use_index:
-        index = galaxy_name
-        #TODO: make sure the name goes right when you do this
-    else:
-        index = find_index(galaxy_name)
+    index = find_index(galaxy_name)
         
     #for this particular galaxy the fluxes    
-    flux_list = [flux_LoTSS[index],flux_NVSS[index],flux_TGSS[index], flux_VLSSr[index],flux_LoLSS[index],   \
+    flux_array = np.array([flux_LoTSS[index], flux_NVSS[index], flux_TGSS[index], flux_VLSSr[index], flux_LoLSS[index],\
                  flux_FIRST[index], flux_inband_low[index], flux_inband_mid[index], flux_inband_high[index], flux_channel0[index],\
                      flux_channel1[index], flux_channel2[index], flux_channel3[index], flux_channel4[index], flux_channel5[index],\
-                         flux_vlass[index]]
-    error_list = [error_LoTSS[index],error_NVSS[index],error_TGSS[index], error_VLSSr[index],error_LoLSS[index],   \
+                         flux_vlass[index]])
+    error_array = np.array([error_LoTSS[index], error_NVSS[index], error_TGSS[index], error_VLSSr[index], error_LoLSS[index],\
                  error_FIRST[index], error_inband_low[index], error_inband_mid[index], error_inband_high[index], \
                      error_channel0[index], error_channel1[index], error_channel2[index], error_channel3[index],\
-                         error_channel4[index], error_channel5[index], e_flux_vlass[index]]
-    flux_array = np.array(flux_list)
-    error_array = np.array(error_list)
+                         error_channel4[index], error_channel5[index], e_flux_vlass[index]])
     
     #general plotting settings
     plt.figure(figsize=(10,8))
@@ -172,17 +165,41 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     plt.xscale('log')
     
     #Plot the data
-    for s in range(len(freq_list)):
-        if flux_list[s] != 0.:
-            if 'LoLLS_ch' in str(label_list[s]):
-                plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
-                         label='LoLSS inband', zorder=10, fmt='o', color='darkgreen', alpha=0.5)
-            elif 'inband_' in str(label_list[s]):
-                plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
-                         label='LoTSS inband', zorder=10, fmt='o', color='purple', alpha=0.5)
-            else:
-                plt.errorbar(freq_list[s], flux_list[s], yerr=error_list[s],\
-                         label=label_list[s], zorder=10, fmt='o')
+    inband_lolss = 0 #fixing the legends
+    inband_lotss = 0
+    for s in range(len(freq_array)):
+        
+        if flux_array[s] != 0.:
+            
+            if 'LoLLS_ch' in str(label_array[s]):
+                if inband_lolss==0:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                             label='LoLSS inband', zorder=10, fmt='o', color='m', alpha=0.4)
+                    inband_lolss=1   
+                else:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                         zorder=10, fmt='o', color='m', alpha=0.4)
+                        
+            elif 'inband_' in str(label_array[s]):
+                if inband_lotss == 0:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                         label='LoTSS inband', zorder=10, fmt='o', color='darkgreen', alpha=0.35)
+                    inband_lotss = 1
+                else:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                         zorder=10, fmt='o', color='darkgreen', alpha=0.35)
+                    
+            elif label_array[s]=='VLASS':
+                if error_array[s]==-1.:
+                    plt.plot(freq_array[s], flux_array[s],\
+                           label=label_array[s], zorder=10, marker='v')  
+                    print('UPPERLIMIT')
+                else:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                     label=label_array[s], zorder=10, fmt='o')
+            else:    
+                plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                     label=label_array[s], zorder=10, fmt='o')
     
     #plot the power law fits  
     plt.plot(x_range_low, a_low[index] * (x_range_low ** alpha_low[index]),\
@@ -196,7 +213,7 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
                 spectral_index_eval_curve(freq_array, flux_array, error_array)
     print('parameters for the curve are', poptgen )
     if did_it_fit:
-        plt.plot(x_range_full, curve(x_range_full, poptgen[0],poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
+        plt.plot(x_range_full, curve(x_range_full, poptgen[0], poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
     
     plt.legend()
     if save_fig:
@@ -206,15 +223,11 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
 
 
 
-#TODO: fix plotting colors and labels
-
-PS_index_list=[]
 counter=0
 for i, name in enumerate(name_list):
-    if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
-        PS_index_list.append(i)
-        make_sed_singular(name, save_fig=True)
-        counter +=1
-        print(counter, '/767')
+    #if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
+    make_sed_singular(name, save_fig=True)
+    counter +=1
+    print(counter, '/767')
 
         

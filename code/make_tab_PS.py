@@ -25,8 +25,10 @@ print(orig_cols)
 #get some useful arrays. Units should be allright
 SNR = tbdata['LoLSS_flux']/tbdata['LoLSS_rms']
 #These are all the PS sources with some demands 
-mask = (tbdata['alpha_low'] >= np.mean(tbdata['e_alpha_low'])) & (tbdata['alpha_high']<=0) #& (tbdata['LoLSS_S_code'] == 'S') & (tbdata['LoLSS_maj']<=30) & (SNR >=1.)
-print(np.mean(tbdata['e_alpha_low']))
+#mask = (tbdata['alpha_low'] >= np.median(tbdata['e_alpha_low']) ) & (tbdata['alpha_high']<=0) #& (tbdata['LoLSS_S_code'] == 'S') & (tbdata['LoLSS_maj']<=30) & (SNR >=1.)
+mask = (tbdata['alpha_low'] >= 0.1 ) & (tbdata['alpha_high']<=0)
+#mask = (tbdata['alpha_low'] >= tbdata['e_alpha_low'] ) & (tbdata['alpha_high']<=-tbdata['e_alpha_high']) #& (tbdata['LoLSS_S_code'] == 'S') & (tbdata['LoLSS_maj']<=30) & (SNR >=1.)
+print((tbdata['e_alpha_low']))
 print(len(tbdata['RA'][mask])) 
 
 """
@@ -50,7 +52,7 @@ However, after meeting with Joe we decided to do VLASS atleast for the entire sa
 # plt.show()
 
 
-# #PS_to_write = tbdata[:][mask] #This is how you get all columns, only masked rows
-# tbdata.remove_rows(np.where(~mask))
-# tbdata.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_sample.fits', format='fits', overwrite = True)
-# tbdata.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_sample.csv', format='csv', overwrite = True)
+PS_to_write = tbdata[:][mask] #This is how you get all columns, only masked rows
+tbdata.remove_rows(np.where(~mask))
+tbdata.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_sample.fits', format='fits', overwrite = True)
+tbdata.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_sample.csv', format='csv', overwrite = True)
