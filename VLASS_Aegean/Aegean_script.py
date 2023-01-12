@@ -1,4 +1,4 @@
-"""Code to run AEGEAN"""
+"""Code downloads vlass cutouts from cadc server, and runs BANE and aegean on it"""
 import numpy as np
 import os
 from numpy import genfromtxt
@@ -12,9 +12,9 @@ import time
 from astropy.io import fits
 
 """
-This code is run in virtualenv
+This code is run in my virtualenv
 
-Ga naar VLASS_Aegean  mapje  
+Ga naar VLASS_Aegean mapje  
 bash
 cd /venv/bin
 source activate
@@ -23,14 +23,11 @@ dan cd ..
 cd ..
 
 hiermee ben je terug in vorige mapje maar wel in venv. Vervolgens kan je gewoon Aegean_script runnen
-
-voorbeeld van werkende code in command line is 
-aegean --autoload --slice 0 --seedclip 3 --table 65_out.fits /net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/Tests/seedclip_4/065-VLASS_2020-06-26_J131747.37+602934.5_s1.0arcmin_e21_mosaicked.fits
-
 """
 
 def classifyVlassFits(fitsName):
   """
+  Written by G. R. Sivakoff
   Given a VLASS FITS file following standard naming conventions, determine the type of image the FITS file is.
   All VLASS FITS files except spectral index (alpha) maps should follow *pbcor.AAA.subim.fits, 
   where AAA can be a variable length string that indicates the file type. VLASS FITS files that are spectral index
@@ -54,6 +51,7 @@ def classifyVlassFits(fitsName):
 
 def getVlassFitsNames(cadc,cadcResults):
   """
+  Written by G. R. Sivakoff
    Given a CADC astroquery connection and the return of an already
    executed base query, get the names and set the types of all FITS files
    and classify their type within VLASS
@@ -75,6 +73,7 @@ def getCoordVlass(targetCoordinate,targetRadius,
                   targetEpochs,targetTypes,
                   cadc):
   """
+  Written by G. R. Sivakoff
    Given a target coordinate, radius, Epochs, and image types, this
    uses an active CADC astroquery connection that has already been
    verified to have results to return the URL for VLASS cutout download 
@@ -192,6 +191,7 @@ def getCadcVlassUrl(coordinate, radius,
                                           'se.alpha.error',
                                           'se.alpha'])):
   """
+  Written by G. R. Sivakoff
    Given a target coordinate, radius, Epochs, and image types, this
    uses an active CADC astroquery connection to first verify that there
    will be results, and then to return the URL for VLASS cutout download 
@@ -206,12 +206,11 @@ def getCadcVlassUrl(coordinate, radius,
 
 def checkCoordVlass(targetCoordinate,targetEpochs,cadc):
   """
+  Written by G. R. Sivakoff
    Given a target coordinate and Epochs, this
    uses an active CADC astroquery connection to verify that there
    will be results.
   """
-
-
   checkPassed =  np.array([], dtype='bool')
 
   # 2 arcsecond availability for quick check
@@ -253,82 +252,84 @@ def checkCoordVlass(targetCoordinate,targetEpochs,cadc):
     return(checkPassed)
 
 
-
 def get_download(ra, dec, radius = 0.25 * u.arcmin, index=''):
     """
-    Downloads the fitsfile for some coordinates, for a given radius
+    Written by Femke Ballieux
+    Downloads the fitsfile for some coordinates, for a given radius.
+    For epoch 2.1 and 2.2 only, only quick look images
+    Index is entered to keep track of different files, as well as to prevent files
+    from overwriting eachother
     """
-    start=time.time()
-    save_to_path ='/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
-    coordinate = SkyCoord(ra, dec, frame='icrs', unit='deg')
-    (CadcUrl,vlassTypes, fitsnames) = getCadcVlassUrl(coordinate, radius, epoch=["2.1", "2.2"], imageType='ql.tt0')
+    start=time.time() 
+    save_to_path ='/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/' #Where the image will be stored
+    coordinate = SkyCoord(ra, dec, frame='icrs', unit='deg') 
+    #Code below retrieves the urls, image type and filenames. Can be more than 1 image per query
+    (CadcUrl,vlassTypes, fitsnames) = getCadcVlassUrl(coordinate, radius, epoch=["2.1", "2.2"], imageType='ql.tt0') 
     print(coordinate, "\n", vlassTypes,"\n",CadcUrl,"\n",fitsnames, "\n" )
-    for i, fitsname in enumerate(fitsnames): #possible that multiple fitsfiles get returned
-        urllib.request.urlretrieve(CadcUrl[i], filename= save_to_path + index + fitsname)
+    
+    for i, fitsname in enumerate(fitsnames): #possible that multiple fitsfiles get returned, run over all
+        urllib.request.urlretrieve(CadcUrl[i], filename= save_to_path + index + fitsname) #retrieve the file
+        
     end=time.time()
     print('elapsed time for this source is  {:.5} s'.format(end-start))
-#get_download(161.804, 47.0591)
+    return fitsnames
+    
+def run_BANE(filename, index):
+    """
+    Written by Femke Ballieux
+    Runs BANE for a downloaded image. The index is an argument, which gets included 
+    to deal with the proper filenames
+    """
+    path = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
+    print('RUNNING BANE for', index)
+    print("")
+    os.system('BANE ' + path + str(index) + '_' + filename)
 
-path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
-mastersample = 'master_LoLSS_with_inband.fits'
+def run_Aegean(filename, index, RA, Dec):
+    """
+    Runs Aegean for the vlass images where BANE had already run on. Index and RA, Dec are included 
+    to get the proper output filenames. 
+    --autoload
+    --seedclip 4 since the positions are known.
+    --slice 0 to prevent anu false cubes to interfere with the results
+    """
+    path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
+    path_in = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
+    print("")
+    print('RUNNING aegean for', index)
+    print("")
 
+    #Output filename is index_RA+Dec_originalfilename.fits
+    os.system('aegean --autoload --slice 0 --seedclip 4 --table ' + path_out + str(index) + '_' \
+              + str(RA) + '+' + str(Dec) + '_' + filename + '.fits ' \
+            + path_in + str(index) + '_' + filename )
+
+path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
+mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
+
+#Read in our mastersample for the coordinates
 hdulist = fits.open(path_to_mastersample + mastersample)
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
-#print(orig_cols)
 hdulist.close()
 
+#Coordinates
 RA = tbdata['RA']
-
 Dec =tbdata['Dec']
 
+test_number=10 #used for only running a subsample of the code
+
+#here the actual process is done
 start_full = time.time()
-for i, coords in enumerate(RA[:3]):
-    get_download(RA[i], Dec[i], index=str(i)+'_')
+for i, coords in enumerate(RA[:test_number]): #Runs over the coordinates
+    fitsnames = get_download(RA[i], Dec[i], index=str(i)+'_') #get the downloads, can be more than 1 for single coordinate pair
+    for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
+        run_BANE(fitsnames[a],i) #Gets BANE for each image
+        run_Aegean(fitsnames[a], i, RA[i], Dec[i]) #Gets Aegean for each image
     
 end_full=time.time()
 print('total elapsed time is {:.5} s'.format(end_full-start_full))
 
-"""
-The following code was written for doing only 767 PS sources, so commented it out. Will first try to obtain the vlass data in another way. 
-Then once that works, in this same script run BANE and aegean. If that works, can we do in the same script the making of the catalogue?
-Working with functions, need something to capture the time,exceptions?
-"""
-# #We split the process up into different patches
-# path = 'VLASS_images/'  
-# batch = '402_501/'
-
-# #list all the filenames, unfortunatwly not in order, but the first numbers correspond to the index in the coord file
-# filenames = os.listdir(path + batch) #only works once since after this we get 3 files for every folder. So need to duplicate the data maybe
-
-# #The only way we can get the coordinates is where we inputted them
-# coordinate_file = genfromtxt(path + 'PS_coords_402_501.csv', delimiter=',')
-
-# #get the indexes
-# index_array=np.zeros(len(filenames))
-# for i, name in enumerate(filenames): #go trough all the filenames in a particular folder
-#     index_array[i]=filenames[i][0:3] #This one contains the first 3 characters of every filename, not in order, contains duplicates
-    
-# #now we want to mask those that are duplicate, since these have measurements at different times
-# m = np.zeros_like(index_array, dtype=bool) 
-# m[np.unique(index_array, return_index=True)[1]] = True
-# print('Store this number to check the duplicates',index_array[~m]) #These are the numbers of the duplicates
-
-# #run bane and aegean
-# for i, index in enumerate(filenames):
-#     print("")
-#     print('RUNNING BANE for', i, '/', len(filenames), 'which is', int(index_array[i]), 'in Cirada')
-#     print("")
-#     os.system('/home/ballieux/.local/bin/BANE --cores 1 ' + path + batch + filenames[i])
-    
-#     #load in the coordinates
-#     coords =coordinate_file[int(index_array[i])]
-#     RA= coords[0]
-#     Dec= coords[1]
-    
-#     print("")
-#     print('RUNNING aegean for', i, '/', len(filenames))
-#     print("")
-#     os.system('/home/ballieux/.local/bin/aegean --autoload --slice 0 --table ' + path + 'catalog_outputs/' + batch + str(int(index_array[i])) \
-#               + '_'+ str(RA)[0:7] + '+' + str(Dec)[0:7]+ '_' + str(filenames[i])[10:20] + '.fits ' + path + batch + filenames[i] )
-
+#TODO: indicatie van hoelang het proces nog gaat duren
+#TODO: Add to this code also the code that turns it into a catalogue
+#TODO: right now it is run with mastersample = 13000 sources, do we do it with isolated sources?
