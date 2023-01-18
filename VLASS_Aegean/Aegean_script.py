@@ -315,38 +315,40 @@ def run_Aegean(filename, index, RA, Dec):
 path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
 mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
 
-
-#Read in our mastersample for the coordinates
-hdulist = fits.open(path_to_mastersample + mastersample)
-tbdata = hdulist[1].data
-orig_cols = hdulist[1].columns
-hdulist.close()
-
-#Coordinates
-RA = tbdata['RA']
-Dec =tbdata['Dec']
-
-test_number=2 #used for only running a subsample of the code
-
 #here the actual process is done
-# start_full = time.time()
-# for i, coords in enumerate(RA[:test_number]): #Runs over the coordinates
-#     fitsnames = get_download(RA[i], Dec[i], index=str(i)+'_') #get the downloads, can be more than 1 for single coordinate pair
-#     for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
-#         start_BANE=time.time()
-#         run_BANE(fitsnames[a],i) #Gets BANE for each image
-#         end_BANE=time.time()
-#         print('Doing BANE in {:.5} seconds'.format(end_BANE-start_BANE))
+def full_process(test_number=2):
+  """
+  Obtains vlass images, runs BANE and Aegean
+  """
+  #Read in our mastersample for the coordinates
+  hdulist = fits.open(path_to_mastersample + mastersample)
+  tbdata = hdulist[1].data
+  orig_cols = hdulist[1].columns
+  hdulist.close()
 
-#         start_Aegean=time.time()
-#         run_Aegean(fitsnames[a], i, RA[i], Dec[i]) #Gets Aegean for each image
-#         end_Aegean=time.time()
-#         print("")
-#         print('Doing Aegean in {:.5} seconds'.format(end_Aegean-start_Aegean))
-#         print("")
-    
-# end_full=time.time()
-# print('total elapsed time is {:.5} s'.format(end_full-start_full))
+  #Coordinates
+  RA = tbdata['RA']
+  Dec =tbdata['Dec']
+
+  start_full = time.time()
+  for i, coords in enumerate(RA[:test_number]): #Runs over the coordinates
+      fitsnames = get_download(RA[i], Dec[i], index=str(i)+'_') #get the downloads, can be more than 1 for single coordinate pair
+      for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
+          start_BANE=time.time()
+          run_BANE(fitsnames[a],i) #Gets BANE for each image
+          end_BANE=time.time()
+          print('Doing BANE in {:.5} seconds'.format(end_BANE-start_BANE))
+
+          start_Aegean=time.time()
+          run_Aegean(fitsnames[a], i, RA[i], Dec[i]) #Gets Aegean for each image
+          end_Aegean=time.time()
+          print("")
+          print('Doing Aegean in {:.5} seconds'.format(end_Aegean-start_Aegean))
+          print("")
+      
+  end_full=time.time()
+  print('total elapsed time is {:.5} s'.format(end_full-start_full))
+
 
 #TODO: indicatie van hoelang het proces nog gaat duren
 #TODO: right now it is run with mastersample = 13000 sources, do we do it with isolated sources?
@@ -363,7 +365,7 @@ def read_file(filename):
     hdulist = Table.read(path_out + '/' + filename)
     return(hdulist)
 
-def make_full_catalog():
+def make_catalog():
   """
   Reads in the output files from aegean and turns them into a single catalog
   """
@@ -377,7 +379,6 @@ def make_full_catalog():
     table_list = read_file(filename)
 
     #store the index, to rule out duplicates
-    #TODO: split on the first _ instead of just taking an index
     inx=filename.split('_')
     index_info = np.full(len(table_list[0][:]), inx[0], dtype="S5" ) #make an array with the index
     table_list['index'] = index_info
@@ -387,9 +388,11 @@ def make_full_catalog():
 
   #This is the final catalog
   catalog = vstack(list_list)
-  print(catalog)
   catalog.write('vlass_catalog_all.fits', overwrite = True)
     
-make_full_catalog()
+full_process()
+make_catalog()
+
+
 #TODO: The code that crossmatches it and deals with bad fits, non-detections
 #TODO: Once that is fixed, also get the BANE rms for the non-detections
