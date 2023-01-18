@@ -10,6 +10,11 @@ from astropy import table
 import urllib
 import time
 from astropy.io import fits
+from astropy.table import vstack, Table
+import matplotlib.pyplot as plt
+from astropy.io import fits
+
+
 
 """
 This code is run in my virtualenv
@@ -266,12 +271,15 @@ def get_download(ra, dec, radius = 0.25 * u.arcmin, index=''):
     #Code below retrieves the urls, image type and filenames. Can be more than 1 image per query
     (CadcUrl,vlassTypes, fitsnames) = getCadcVlassUrl(coordinate, radius, epoch=["2.1", "2.2"], imageType='ql.tt0') 
     print(coordinate, "\n", vlassTypes,"\n",CadcUrl,"\n",fitsnames, "\n" )
-    
+
+    end_retrieveurl=time.time()
+    print("Retrieving urls in {:.5} seconds".format(end_retrieveurl-start))
+
     for i, fitsname in enumerate(fitsnames): #possible that multiple fitsfiles get returned, run over all
         urllib.request.urlretrieve(CadcUrl[i], filename= save_to_path + index + fitsname) #retrieve the file
         
     end=time.time()
-    print('elapsed time for this source is  {:.5} s'.format(end-start))
+    print('Retrieving urls and downloading it in  {:.5} seconds'.format(end-start))
     return fitsnames
     
 def run_BANE(filename, index):
@@ -280,10 +288,10 @@ def run_BANE(filename, index):
     Runs BANE for a downloaded image. The index is an argument, which gets included 
     to deal with the proper filenames
     """
-    path = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
+    path_to_image = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
     print('RUNNING BANE for', index)
     print("")
-    os.system('BANE ' + path + str(index) + '_' + filename)
+    os.system('BANE ' + path_to_image + str(index) + '_' + filename)
 
 def run_Aegean(filename, index, RA, Dec):
     """
@@ -307,6 +315,7 @@ def run_Aegean(filename, index, RA, Dec):
 path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
 mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
 
+
 #Read in our mastersample for the coordinates
 hdulist = fits.open(path_to_mastersample + mastersample)
 tbdata = hdulist[1].data
@@ -317,19 +326,70 @@ hdulist.close()
 RA = tbdata['RA']
 Dec =tbdata['Dec']
 
-test_number=10 #used for only running a subsample of the code
+test_number=2 #used for only running a subsample of the code
 
 #here the actual process is done
-start_full = time.time()
-for i, coords in enumerate(RA[:test_number]): #Runs over the coordinates
-    fitsnames = get_download(RA[i], Dec[i], index=str(i)+'_') #get the downloads, can be more than 1 for single coordinate pair
-    for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
-        run_BANE(fitsnames[a],i) #Gets BANE for each image
-        run_Aegean(fitsnames[a], i, RA[i], Dec[i]) #Gets Aegean for each image
+# start_full = time.time()
+# for i, coords in enumerate(RA[:test_number]): #Runs over the coordinates
+#     fitsnames = get_download(RA[i], Dec[i], index=str(i)+'_') #get the downloads, can be more than 1 for single coordinate pair
+#     for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
+#         start_BANE=time.time()
+#         run_BANE(fitsnames[a],i) #Gets BANE for each image
+#         end_BANE=time.time()
+#         print('Doing BANE in {:.5} seconds'.format(end_BANE-start_BANE))
+
+#         start_Aegean=time.time()
+#         run_Aegean(fitsnames[a], i, RA[i], Dec[i]) #Gets Aegean for each image
+#         end_Aegean=time.time()
+#         print("")
+#         print('Doing Aegean in {:.5} seconds'.format(end_Aegean-start_Aegean))
+#         print("")
     
-end_full=time.time()
-print('total elapsed time is {:.5} s'.format(end_full-start_full))
+# end_full=time.time()
+# print('total elapsed time is {:.5} s'.format(end_full-start_full))
 
 #TODO: indicatie van hoelang het proces nog gaat duren
-#TODO: Add to this code also the code that turns it into a catalogue
 #TODO: right now it is run with mastersample = 13000 sources, do we do it with isolated sources?
+
+"""
+Below is the code that turns the results into a catalogue
+"""
+
+def read_file(filename):
+    """
+    Takes in one of the single catalog and puts it in the proper format
+    """
+    path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
+    hdulist = Table.read(path_out + '/' + filename)
+    return(hdulist)
+
+def make_full_catalog():
+  """
+  Reads in the output files from aegean and turns them into a single catalog
+  """
+  path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
+  list_list=[]#A list that keeps track of all the different tables
+
+  #run over all files that have been outputted
+  filenames = os.listdir(path_out)
+  for j, filename in enumerate(filenames): #Run over all files
+    #Get the table
+    table_list = read_file(filename)
+
+    #store the index, to rule out duplicates
+    #TODO: split on the first _ instead of just taking an index
+    inx=filename.split('_')
+    index_info = np.full(len(table_list[0][:]), inx[0], dtype="S5" ) #make an array with the index
+    table_list['index'] = index_info
+          
+    #Add it to the list keeping track of all lists
+    list_list.append(table_list)
+
+  #This is the final catalog
+  catalog = vstack(list_list)
+  print(catalog)
+  catalog.write('vlass_catalog_all.fits', overwrite = True)
+    
+make_full_catalog()
+#TODO: The code that crossmatches it and deals with bad fits, non-detections
+#TODO: Once that is fixed, also get the BANE rms for the non-detections
