@@ -1,4 +1,6 @@
+
 """Code downloads vlass cutouts from cadc server, and runs BANE and aegean on it"""
+
 import numpy as np
 import os
 from numpy import genfromtxt
@@ -13,6 +15,8 @@ from astropy.io import fits
 from astropy.table import vstack, Table
 import matplotlib.pyplot as plt
 from astropy.io import fits
+import multiprocessing 
+from functools import partial
 
 
 
@@ -63,7 +67,6 @@ def getVlassFitsNames(cadc,cadcResults):
    1. Search all auxillary files for an observation for fits files
    2. Classify FITS file type
   """
-
   fitsNames = np.array([])
   vlassTypes = np.array([])
   urls = cadc.get_data_urls(cadcResults,include_auxiliaries=True)
@@ -107,6 +110,7 @@ def getCoordVlass(targetCoordinate,targetRadius,
      instead; this will raise an error or perform elementwise comparison
      in
   """
+
   results = cadc.query_region(targetCoordinate, targetRadius,
                               collection='VLASS')
 
@@ -202,7 +206,6 @@ def getCadcVlassUrl(coordinate, radius,
    will be results, and then to return the URL for VLASS cutout download 
    and the image type among VLASS options.
   """
-
   cadc = Cadc()
   inVlassCheck = checkCoordVlass(coordinate,epoch,cadc)
   if True in inVlassCheck:
@@ -241,7 +244,6 @@ def checkCoordVlass(targetCoordinate,targetEpochs,cadc):
   """
   results = cadc.query_region(targetCoordinate, existenceRadius,
                               collection='VLASS', verbose=True)
-
   if len(results['observationURI']) == 0: #Changed from original, checks if anything is found
     print("No Valid Coordinate")
     checkPassed = np.append(checkPassed,False)
@@ -257,102 +259,157 @@ def checkCoordVlass(targetCoordinate,targetEpochs,cadc):
     return(checkPassed)
 
 
-def get_download(ra, dec, radius = 0.25 * u.arcmin, index=''):
+
+
+def get_url(coordinate, radius = 0.25 * u.arcmin):
     """
     Written by Femke Ballieux
-    Downloads the fitsfile for some coordinates, for a given radius.
+    Retrieves the urls for the fitsfile for some coordinates, for a given radius.
     For epoch 2.1 and 2.2 only, only quick look images
-    Index is entered to keep track of different files, as well as to prevent files
+    Index is included to keep track of different files, as well as to prevent files
     from overwriting eachother
     """
     start=time.time() 
     save_to_path ='/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/' #Where the image will be stored
-    coordinate = SkyCoord(ra, dec, frame='icrs', unit='deg') 
+
     #Code below retrieves the urls, image type and filenames. Can be more than 1 image per query
-    (CadcUrl,vlassTypes, fitsnames) = getCadcVlassUrl(coordinate, radius, epoch=["2.1", "2.2"], imageType='ql.tt0') 
+    (CadcUrl, vlassTypes, fitsnames) = getCadcVlassUrl(coordinate, radius, epoch=["2.1", "2.2"], imageType='ql.tt0') 
     print(coordinate, "\n", vlassTypes,"\n",CadcUrl,"\n",fitsnames, "\n" )
+    end=time.time()
+    print("Retrieving urls in {:.5} seconds".format(end-start))
+    return vlassTypes, CadcUrl, fitsnames
 
-    end_retrieveurl=time.time()
-    print("Retrieving urls in {:.5} seconds".format(end_retrieveurl-start))
-
+def get_download(coordinate, vlassTypes, CadcUrl, fitsnames, index=''):
+    """
+    Written by Femke Ballieux
+    downloads the urls for a specific coordinate, using the output from the get-url function
+    """
+    start=time.time() 
+    save_to_path ='/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/' #Where the image will be stored
     for i, fitsname in enumerate(fitsnames): #possible that multiple fitsfiles get returned, run over all
         urllib.request.urlretrieve(CadcUrl[i], filename= save_to_path + index + fitsname) #retrieve the file
         
     end=time.time()
-    print('Retrieving urls and downloading it in  {:.5} seconds'.format(end-start))
+    print('Downloading urls in  {:.5} seconds'.format(end-start))
     return fitsnames
     
 def run_BANE(filename, index):
+    begin_number = 0
+    end_number = 10000
+    
     """
     Written by Femke Ballieux
     Runs BANE for a downloaded image. The index is an argument, which gets included 
     to deal with the proper filenames
     """
     path_to_image = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
-    print('RUNNING BANE for', index)
+    print('RUNNING BANE for index ', begin_number + index, '/', end_number-1)
     print("")
-    os.system('BANE ' + path_to_image + str(index) + '_' + filename)
+    os.system('BANE --cores 1 ' + path_to_image + str(index) + '_' + filename)
 
-def run_Aegean(filename, index, RA, Dec):
+def run_Aegean(filename, index, RA='_', Dec='_'):
+    begin_number = 0
+    end_number = 10000
+    
     """
     Runs Aegean for the vlass images where BANE had already run on. Index and RA, Dec are included 
     to get the proper output filenames. 
     --autoload
     --seedclip 4 since the positions are known.
-    --slice 0 to prevent anu false cubes to interfere with the results
+    --slice 0 to prevent any false cubes to interfere with the results
     """
     path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
     path_in = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
     print("")
-    print('RUNNING aegean for', index)
+    print('RUNNING aegean for index ', begin_number + index, '/', end_number-1)
     print("")
 
     #Output filename is index_RA+Dec_originalfilename.fits
-    os.system('aegean --autoload --slice 0 --seedclip 4 --table ' + path_out + str(index) + '_' \
-              + str(RA) + '+' + str(Dec) + '_' + filename + '.fits ' \
+    os.system('aegean --autoload --slice 0 --cores 1 --seedclip 4 --table ' + path_out + str(index) + '_' \
+               + filename + '.fits ' \
             + path_in + str(index) + '_' + filename )
+    # os.system('aegean --autoload --slice 0 --seedclip 4 --table ' + path_out + str(index) + '_' \
+    #           + str(RA) + '+' + str(Dec) + '_' + filename + '.fits ' \
+    #         + path_in + str(index) + '_' + filename )
 
-path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
-mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
 
-#here the actual process is done
-def full_process(test_number=2):
+# #Below I will do some testing/messing around. Delete below here
+# path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
+# mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
+
+# #Read in our mastersample for the coordinates
+# hdulist = fits.open(path_to_mastersample + mastersample)
+# tbdata = hdulist[1].data
+# orig_cols = hdulist[1].columns
+# hdulist.close()
+
+# #Coordinates
+# RA = tbdata['RA']
+# Dec =tbdata['Dec']
+
+# test=5
+# #result_table = Simbad.query_region(SkyCoord(ra=[10, 11], dec=[10, 11], unit=(u.deg, u.deg), frame='fk5'), radius=0.1 * u.deg)
+# #result_table = Cadc.query_region(SkyCoord(ra=[10, 11], dec=[10, 11], unit=(u.deg, u.deg), frame='fk5'), radius=0.1 * u.deg)
+# #print(result_table, 'hoi')
+
+# coordinates = SkyCoord(ra=RA[:test], dec=Dec[:test], frame='icrs', unit='deg')
+# print(coordinates)
+# urls=getCadcVlassUrl(coordinates, radius=0.25*u.arcmin)
+# #urls=Cadc.query_region(coordinates, radius=0.1*u.deg, collection='VLASS')
+# print(urls)
+# #What I learned so far, the extended version is better since it deals with filenames, epochs etc. Do need to figure out how to do batches. 
+# # #Wat ik hierboven heb is om te testen zodat ik niet mn hele code verneuk 
+# #Hij pakt niet meerdere coordinates in 1x. Misschien rondspelen met hoe je coordinates defined, het zou toch moeten kunnen?? 
+# #Delete above here
+
+
+
+def obtain_and_clean_images(coordinate, index = ''):
   """
-  Obtains vlass images, runs BANE and Aegean
+  Obtains vlass url and downloads the images for a single coordinate, then cleans the downloaded images
   """
-  #Read in our mastersample for the coordinates
-  hdulist = fits.open(path_to_mastersample + mastersample)
-  tbdata = hdulist[1].data
-  orig_cols = hdulist[1].columns
-  hdulist.close()
-
-  #Coordinates
-  RA = tbdata['RA']
-  Dec =tbdata['Dec']
-
   start_full = time.time()
-  for i, coords in enumerate(RA[:test_number]): #Runs over the coordinates
-      fitsnames = get_download(RA[i], Dec[i], index=str(i)+'_') #get the downloads, can be more than 1 for single coordinate pair
-      for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
-          start_BANE=time.time()
-          run_BANE(fitsnames[a],i) #Gets BANE for each image
-          end_BANE=time.time()
-          print('Doing BANE in {:.5} seconds'.format(end_BANE-start_BANE))
 
-          start_Aegean=time.time()
-          run_Aegean(fitsnames[a], i, RA[i], Dec[i]) #Gets Aegean for each image
-          end_Aegean=time.time()
-          print("")
-          print('Doing Aegean in {:.5} seconds'.format(end_Aegean-start_Aegean))
-          print("")
-      
+  #Get the url and the download
+  try:
+      vlassTypes, CadcUrl, fitsnames = get_url(coordinate)
+      get_download(coordinate, vlassTypes, CadcUrl, fitsnames, str(index)+'_')
+  except:
+      print('DOWNLOADING WENT WRONG FOR', index)
+          
+
+  end=time.time()
+  print('elapsed time for retrieving the url and downloading the image is {:.5} s'.format(end-start_full))
+  
+  
+  for a, fitsname in enumerate(fitsnames): #Runs over multiple images for a single coordinate pair = index
+    start_BANE=time.time()
+    try:
+        run_BANE(fitsnames[a],index) #Gets BANE for each image
+    except:
+        print('COULD NOT RUN BANE FOR', index, a)
+
+    end_BANE=time.time()
+    print('Doing BANE in {:.5} seconds'.format(end_BANE-start_BANE))
+
+    start_Aegean=time.time()
+    try:
+        run_Aegean(fitsname, index) #Gets Aegean for each image
+    except:
+        print('COULD NOT RUN AEGEAN FOR', index, a)
+    end_Aegean=time.time()
+    print('Doing Aegean in {:.5} seconds'.format(end_Aegean-start_Aegean))
+    print("")
+    
   end_full=time.time()
-  print('total elapsed time is {:.5} s'.format(end_full-start_full))
+  print('total elapsed time for this source is {:.5} s'.format(end_full-start_full))
+
+    
+def multiprocessing_func(coordinates, i):
+    obtain_and_clean_images(coordinates[i], index=i)
 
 
-#TODO: indicatie van hoelang het proces nog gaat duren
-#TODO: right now it is run with mastersample = 13000 sources, do we do it with isolated sources?
-
+    
 """
 Below is the code that turns the results into a catalogue
 """
@@ -389,10 +446,48 @@ def make_catalog():
   #This is the final catalog
   catalog = vstack(list_list)
   catalog.write('vlass_catalog_all.fits', overwrite = True)
+
+
+if __name__ == '__main__':
+ 	# set the start method
+    multiprocessing.set_start_method('spawn')
+    begin_number = 0
+    end_number = 10000
     
-full_process()
-make_catalog()
+    """
+    Below, we import the coordinates and turn it into a coordinate object. These coordinates
+    are looped over for the downloading of the images
+    """
+    path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
+    #mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
+    LoTSS_sample = 'unresolved_isolated_S_source.fits'
+
+    #Read in our mastersample for the coordinates
+    hdulist = fits.open(path_to_mastersample + LoTSS_sample)
+    tbdata = hdulist[1].data
+    orig_cols = hdulist[1].columns
+    hdulist.close()
+
+    #Coordinates
+    RA = tbdata['RA']
+    Dec = tbdata['Dec']
+
+    #now we have one skyCoord object that we can enter into the functions
+
+    coordinates = SkyCoord(ra=RA[begin_number:end_number], dec=Dec[begin_number:end_number], frame='icrs', unit='deg')
+    
+    starttime = time.time()
+    pool = multiprocessing.Pool()
+    func = partial(multiprocessing_func, coordinates)
+    pool.map(func, range(len(coordinates)))
+    pool.close()
+    pool.join()
+    print('That took {} seconds'.format(time.time() - starttime))
+    
+    print('making catalog')
+    make_catalog() #Makes catalog of all sources found
 
 
 #TODO: The code that crossmatches it and deals with bad fits, non-detections
 #TODO: Once that is fixed, also get the BANE rms for the non-detections
+
