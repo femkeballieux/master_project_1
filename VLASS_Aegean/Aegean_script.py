@@ -470,7 +470,7 @@ if __name__ == '__main__':
 
     #Coordinates
     RA = tbdata['RA']
-    Dec = tbdata['Dec']
+    Dec = tbdata['DEC'] #Pay attention to proper column names
 
     #now we have one skyCoord object that we can enter into the functions
 
