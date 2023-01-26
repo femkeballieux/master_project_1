@@ -30,10 +30,10 @@ t['err_peak_flux'].name = 'E_peak_flux_VLASS'
 t['int_flux'].name = 'int_flux_VLASS'
 t['err_int_flux'].name = 'E_int_flux_VLASS'
 
-#All with error -1 from aegean have a bad fit
+#All with error -1 from aegean have a bad fit. I have checked, this goes right.
 badfit_mask = (t['E_peak_flux_VLASS']== -1. )
 
-#make sure that non-detections become upper limits (does not deal yet with failed aegean)
+#make sure that non-detections become upper limits with error -1, value equal to sensitivity of vlass
 vlass_sensitivity = 120e-6 #jansky
 t['peak_flux_VLASS'], t['E_peak_flux_VLASS'] = np.where(np.isnan(t['peak_flux_VLASS']),\
                                 vlass_sensitivity, t['peak_flux_VLASS']), np.where(np.isnan(t['E_peak_flux_VLASS']), -1., t['E_peak_flux_VLASS'])
@@ -41,17 +41,17 @@ t['peak_flux_VLASS'], t['E_peak_flux_VLASS'] = np.where(np.isnan(t['peak_flux_VL
 t['int_flux_VLASS'], t['E_int_flux_VLASS'] = np.where(np.isnan(t['int_flux_VLASS']),\
                                 vlass_sensitivity, t['int_flux_VLASS']), np.where(np.isnan(t['E_int_flux_VLASS']), -1., t['E_int_flux_VLASS'])
 
-#propagate 10 % flux error
+#propagate 15 % flux error on all normal datapoints, but keep track of the old errors
 t['E_int_flux_VLASS_full']= np.sqrt(t['E_int_flux_VLASS']**2 + (0.15 * t['int_flux_VLASS'])**2)
 t['E_peak_flux_VLASS_full']= np.sqrt(t['E_peak_flux_VLASS']**2 + (0.15 * t['peak_flux_VLASS'])**2)
 
-t['E_peak_flux_VLASS_full']=np.where(t['E_peak_flux_VLASS_full']==1., -1., t['E_peak_flux_VLASS_full'])
-t['E_int_flux_VLASS_full']=np.where(t['E_int_flux_VLASS_full']==1., -1., t['E_int_flux_VLASS_full'])
+#All the sources with a bad fit, now have error 1 instead of error -1, so fix this. 
+# t['E_peak_flux_VLASS_full']=np.where(t['E_peak_flux_VLASS_full']==1., -1., t['E_peak_flux_VLASS_full'])
+# t['E_int_flux_VLASS_full']=np.where(t['E_int_flux_VLASS_full']==1., -1., t['E_int_flux_VLASS_full'])
 
-#all with bad fit have error of 15 percent of flux
+#all with bad fit have error of 25 percent of flux. Do it below, because otherwise the column does not exist yet
 t['E_int_flux_VLASS_full'][badfit_mask] = 0.25 * t['int_flux_VLASS'][badfit_mask] 
 t['E_peak_flux_VLASS_full'][badfit_mask] = 0.25 * t['peak_flux_VLASS'][badfit_mask]
-
 
 
 t.write("/net/vdesk/data2/bach1/ballieux/master_project_1/data/PS_with_vlass.fits", overwrite=True)
