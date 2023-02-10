@@ -15,7 +15,8 @@ path_laptop = 'C:/Users/Femke/Documents/GitHub/master_project_1/data'
 path_vdesk= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
 
 #read in the data
-hdulist = fits.open(path_vdesk + 'PS_with_vlass.fits')
+#hdulist = fits.open(path_vdesk + 'PS_with_vlass.fits')
+hdulist = fits.open(path_vdesk + 'mega_master_10000_clean.fits')
 high_survey = 'NVSS' #could also be first, but we use NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
@@ -27,10 +28,14 @@ print(orig_cols)
 #make lists of the most used columns
 name_list = tbdata['LoTSS_name']
 
-alpha_low = tbdata['alpha_low']
-alpha_high = tbdata['alpha_high']
-a_low = tbdata['a_low']
-a_high = tbdata['a_high']
+alpha_low_LoLSS = tbdata['alpha_low_LoLSS']
+alpha_high_LoLSS = tbdata['alpha_high_LoLSS']
+a_low_LoLSS = tbdata['a_low_LoLSS']
+a_high_LoLSS = tbdata['a_high_LoLSS']
+alpha_low_VLASS = tbdata['alpha_low_VLASS']
+alpha_high_VLASS = tbdata['alpha_high_VLASS']
+a_low_VLASS = tbdata['a_low_VLASS']
+a_high_VLASS = tbdata['a_high_VLASS']
 flux_LoTSS = tbdata['LoTSS_flux']
 flux_LoLSS = tbdata['LoLSS_flux']
 flux_NVSS = tbdata['NVSS_flux']
@@ -63,8 +68,8 @@ error_channel3 = tbdata['e_channel3_flux']
 error_channel4 = tbdata['e_channel4_flux']
 error_channel5 = tbdata['e_channel5_flux']
 
-flux_vlass = tbdata['int_flux_VLASS']
-e_flux_vlass = tbdata['E_int_flux_VLASS_full']
+flux_vlass = tbdata['VLASS_flux']
+e_flux_vlass = tbdata['e_VLASS_flux']
 
 
 #frequencies all in Mhz
@@ -98,7 +103,8 @@ label_array = np.array(['LoTSS', 'NVSS', 'TGSS', 'VLSSr', 'LoLSS', 'FIRST', 'inb
 #used for plotting the spectral indices
 #TODO: add wenss
 x_range_low = np.linspace(50, 144, 1000)
-x_range_high = np.linspace(144, 1400, 1000)
+x_range_mid = np.linspace(144, 1400, 1000)
+x_range_high = np.linspace(1400, 3000, 1000)
 x_range_full= np.linspace(50, 3000, 1000)
 
 def find_index(galaxy_name, name_list = name_list):
@@ -201,19 +207,29 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
                 plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
                      label=label_array[s], zorder=10, fmt='o')
     
-    #plot the power law fits  
-    plt.plot(x_range_low, a_low[index] * (x_range_low ** alpha_low[index]),\
-             color='green', label='powerlaw low') 
-    plt.plot(x_range_high, a_high[index] * (x_range_high ** alpha_high[index]),\
-             color='black', label='powerlaw high') 
+    #plot the power law fits for LoLSS
+    if alpha_low_LoLSS[index]!=0.:
+        plt.plot(x_range_low, a_low_LoLSS[index] * (x_range_low ** alpha_low_LoLSS[index]),\
+                 color='green', label='powerlaw low LoLSS') 
+        plt.plot(x_range_mid, a_high_LoLSS[index] * (x_range_mid ** alpha_high_LoLSS[index]),\
+                 color='black', label='powerlaw high LoLSS') 
+    #Plot the powerlaw fits for VLASS        
+    if alpha_low_VLASS[index]!=0.:
+        
+        plt.plot(x_range_mid, a_low_VLASS[index] * (x_range_mid ** alpha_low_VLASS[index]),\
+                 color='indigo', label='powerlaw low VLASS') 
+        plt.plot(x_range_high, a_high_VLASS[index] * (x_range_high ** alpha_high_VLASS[index]),\
+                 color='blue', label='powerlaw high VLASS') 
+    else:
+        print('no spectral index fit')
     
     #fit the curved models
     
     fluxplot, freqplot, flux_errplot, poptgen, pcovgen, did_it_fit = \
                 spectral_index_eval_curve(freq_array, flux_array, error_array)
     print('parameters for the curve are', poptgen )
-    if did_it_fit:
-        plt.plot(x_range_full, curve(x_range_full, poptgen[0], poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
+    # if did_it_fit:
+    #     plt.plot(x_range_full, curve(x_range_full, poptgen[0], poptgen[1] , poptgen[2], poptgen[3] ), color='red', label='curve')
     
     plt.legend()
     if save_fig:
@@ -222,12 +238,12 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     plt.show()
 
 
-
-counter=0
-for i, name in enumerate(name_list):
-    #if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
-    make_sed_singular(name, save_fig=True)
-    counter +=1
-    print(counter, '/767')
+make_sed_singular(tbdata['LoTSS_name'][1983], save_fig=False)
+# counter=0
+# for i, name in enumerate(name_list):
+#     #if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
+#     make_sed_singular(name, save_fig=True)
+#     counter +=1
+#     print(counter, '/767')
 
         

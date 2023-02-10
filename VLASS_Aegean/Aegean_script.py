@@ -5,7 +5,7 @@ import numpy as np
 import os
 from numpy import genfromtxt
 from astropy.wcs.wcs import NoConvergence
-from astroquery.cadc import Cadc
+# from astroquery.cadc import Cadc
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy import table  
@@ -294,8 +294,8 @@ def get_download(coordinate, vlassTypes, CadcUrl, fitsnames, index=''):
     return fitsnames
     
 def run_BANE(filename, index):
-    begin_number = 0
-    end_number = 10000
+    # begin_number = 0
+    # end_number = 10000
     
     """
     Written by Femke Ballieux
@@ -303,13 +303,14 @@ def run_BANE(filename, index):
     to deal with the proper filenames
     """
     path_to_image = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
-    print('RUNNING BANE for index ', begin_number + index, '/', end_number-1)
+    # print('RUNNING BANE for index ', begin_number + index, '/', end_number-1)
+    print('RUNNING BANE for index ',  index)
     print("")
     os.system('BANE --cores 1 ' + path_to_image + str(index) + '_' + filename)
 
 def run_Aegean(filename, index, RA='_', Dec='_'):
-    begin_number = 0
-    end_number = 10000
+    # begin_number = 0
+    # end_number = 10000
     
     """
     Runs Aegean for the vlass images where BANE had already run on. Index and RA, Dec are included 
@@ -321,7 +322,7 @@ def run_Aegean(filename, index, RA='_', Dec='_'):
     path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
     path_in = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
     print("")
-    print('RUNNING aegean for index ', begin_number + index, '/', end_number-1)
+    print('RUNNING aegean for index ', index)
     print("")
 
     #Output filename is index_RA+Dec_originalfilename.fits
@@ -422,6 +423,34 @@ def read_file(filename):
     hdulist = Table.read(path_out + '/' + filename)
     return(hdulist)
 
+# def make_catalog():
+#   """
+#   Reads in the output files from aegean and turns them into a single catalog
+#   """
+#   path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
+#   list_list=[]#A list that keeps track of all the different tables
+
+#   #run over all files that have been outputted
+#   filenames = os.listdir(path_out)
+#   for j, filename in enumerate(filenames): #Run over all files
+#     print(j)
+#     #Get the table
+#     table_list = read_file(filename)
+
+#     #store the index, to rule out duplicates
+#     inx=filename.split('_')
+#     index_info = np.full(len(table_list[0][:]), inx[0], dtype="S5" ) #make an array with the index
+#     table_list['index'] = index_info
+          
+#     #Add it to the list keeping track of all lists
+#     list_list.append(table_list)
+#   print('Doing the vstack')
+#   #This is the final catalog
+#   catalog = vstack(list_list)
+#   print('writing the catalog')
+#   catalog.write('vlass_catalog_all.fits', overwrite = True)
+
+
 def make_catalog():
   """
   Reads in the output files from aegean and turns them into a single catalog
@@ -431,7 +460,8 @@ def make_catalog():
 
   #run over all files that have been outputted
   filenames = os.listdir(path_out)
-  for j, filename in enumerate(filenames): #Run over all files
+  for j, filename in enumerate(filenames[:80000]): #Run over all files
+    print(j)
     #Get the table
     table_list = read_file(filename)
 
@@ -442,47 +472,84 @@ def make_catalog():
           
     #Add it to the list keeping track of all lists
     list_list.append(table_list)
-
+  print('Doing the vstack')
   #This is the final catalog
   catalog = vstack(list_list)
-  catalog.write('vlass_catalog_all.fits', overwrite = True)
+  print('writing the catalog')
+  catalog.write('vlass_catalog_all_1.fits', overwrite = True)
+  
+  list_list=[]
+  for j, filename in enumerate(filenames[80000:]): #Run over all files
+    print(j)
+    #Get the table
+    table_list = read_file(filename)
+
+    #store the index, to rule out duplicates
+    inx=filename.split('_')
+    index_info = np.full(len(table_list[0][:]), inx[0], dtype="S5" ) #make an array with the index
+    table_list['index'] = index_info
+          
+    #Add it to the list keeping track of all lists
+    list_list.append(table_list)
+  print('Doing the vstack')
+  #This is the final catalog
+  catalog = vstack(list_list)
+  print('writing the catalog')
+  catalog.write('vlass_catalog_all_2.fits', overwrite = True)
 
 
 if __name__ == '__main__':
  	# set the start method
-    multiprocessing.set_start_method('spawn')
-    begin_number = 0
-    end_number = 10000
+#     multiprocessing.set_start_method('spawn')
+#     # begin_number = 0
+#     # end_number = 10000
     
-    """
-    Below, we import the coordinates and turn it into a coordinate object. These coordinates
-    are looped over for the downloading of the images
-    """
-    path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
-    #mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
-    LoTSS_sample = 'unresolved_isolated_S_source.fits'
+#     """
+#     Below, we import the coordinates and turn it into a coordinate object. These coordinates
+#     are looped over for the downloading of the images
+#     """
+#     path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
+#     path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
+#     path_image = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
+#     #mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
+#     LoTSS_sample = 'crossmatch_NVSS_LoTSS.fits'
 
-    #Read in our mastersample for the coordinates
-    hdulist = fits.open(path_to_mastersample + LoTSS_sample)
-    tbdata = hdulist[1].data
-    orig_cols = hdulist[1].columns
-    hdulist.close()
+#     #Read in our mastersample for the coordinates
+#     hdulist = fits.open(path_to_mastersample + LoTSS_sample)
+#     tbdata = hdulist[1].data
+#     orig_cols = hdulist[1].columns
+#     hdulist.close()
 
-    #Coordinates
-    RA = tbdata['RA']
-    Dec = tbdata['DEC'] #Pay attention to proper column names
+#     #Coordinates
+#     RA = tbdata['RA']
+#     Dec = tbdata['DEC'] #Pay attention to proper column names
 
-    #now we have one skyCoord object that we can enter into the functions
-
-    coordinates = SkyCoord(ra=RA[begin_number:end_number], dec=Dec[begin_number:end_number], frame='icrs', unit='deg')
+#     coordinates = SkyCoord(ra=RA, dec=Dec, frame='icrs', unit='deg')
     
-    starttime = time.time()
-    pool = multiprocessing.Pool()
-    func = partial(multiprocessing_func, coordinates)
-    pool.map(func, range(len(coordinates)))
-    pool.close()
-    pool.join()
-    print('That took {} seconds'.format(time.time() - starttime))
+#     #check which files are alreasy cleaned by Aegean
+#     print('Checking which files already have an Aegean output')
+#     filenames = os.listdir(path_out)
+#     index_done=[int(filenames[i].split('_')[0]) for i in range(len(filenames))]
+#  #   index_done_array=np.array(index_done)
+
+#     mask_notdone = np.ones((len(coordinates)), dtype=bool)
+#     mask_notdone[index_done] = False
+    
+#     print('Checking which files already have a cutout')
+#     filenames_image = os.listdir(path_image)
+#     index_image=[int(filenames_image[i].split('_')[0]) for i in range(len(filenames_image))]
+# #    index_image_array=np.array(index_image)
+#     mask_notdone[index_image] = False
+
+#     indexes=np.array(range(len(coordinates)))
+    
+#     starttime = time.time()
+#     pool = multiprocessing.Pool()
+#     func = partial(multiprocessing_func, coordinates)
+#     pool.map(func, indexes[mask_notdone])
+#     pool.close()
+#     pool.join()
+#     print('That took {} seconds'.format(time.time() - starttime))
     
     print('making catalog')
     make_catalog() #Makes catalog of all sources found

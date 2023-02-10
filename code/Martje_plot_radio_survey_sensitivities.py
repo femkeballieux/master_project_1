@@ -38,17 +38,19 @@ sens_gleam = 20.189*freq_gleam**(-1.2411) * 1000
 freq_gps = np.linspace(15,23000,4000)
 # freq_gps2 = np.linspace(15,23000,1000)
 
-flux_gps1 = gpscssmodels.singSSA(freq_gps,80.,2.4,100)
-flux_gps2 = gpscssmodels.singSSA(freq_gps,300.,2.4,750)
-flux_gps3 = gpscssmodels.singSSA(freq_gps,160.,2.4,190)
-flux_gps4 = gpscssmodels.singSSA(freq_gps,40.,2.4,1000)
+flux_gps1 = gpscssmodels.singSSA(freq_gps,80.,2.4,100) #slob et al. 2022
+flux_gps2 = gpscssmodels.singSSA(freq_gps,300.,2.4,750) #O'dea 1998
+flux_gps3 = gpscssmodels.singSSA(freq_gps,160.,2.4,190) #callingham et al. 2017
+flux_gps4 = gpscssmodels.singSSA(freq_gps,16.,2.4,1400) #Guess values for LoTSS NVSS VLASS
+flux_gps5 = gpscssmodels.singSSA(freq_gps,30.,2.4,100.)  #Guess values for LoLSS LoTSS NVSS
 
 ax.plot(freq_survey,flux_lim_survey,marker='s',color='k',ls='none',markerfacecolor='none',markeredgewidth=2)
 ax.plot(freq_gleam,sens_gleam)
-ax.plot(freq_gps,flux_gps1,color='#377eb8',zorder=-1)
-ax.plot(freq_gps,flux_gps2,ls='--',color='#ff7f00')
-ax.plot(freq_gps,flux_gps3,ls='-.',color='#4daf4a')
-# ax.plot(freq_gps,flux_gps4,color='darkgreen')
+ax.plot(freq_gps,flux_gps1,color='#377eb8',zorder=-1) 
+ax.plot(freq_gps,flux_gps2,ls='--',color='#ff7f00') 
+ax.plot(freq_gps,flux_gps3,ls='-.',color='#4daf4a') 
+ax.plot(freq_gps,flux_gps4,color='darkgreen') 
+ax.plot(freq_gps,flux_gps5,color='fuchsia')
 
 for i, txt in enumerate(survey_list):
     if txt in ['AT20G']:
@@ -62,7 +64,7 @@ for i, txt in enumerate(survey_list):
     else:
         ax.annotate(txt, (freq_survey[i]+0.07*freq_survey[i],flux_lim_survey[i]), fontsize=12)
 
-ax.annotate('GLEAM', (freq_gleam[120],sens_gleam[700]), rotation = -32)
+ax.annotate('GLEAM', (freq_gleam[120],sens_gleam[700]), rotation = -37)
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_xlim([20,22000])

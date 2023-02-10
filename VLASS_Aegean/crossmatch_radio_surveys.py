@@ -10,27 +10,47 @@ from tqdm import tqdm
 import scipy.optimize as opt
 import gpscssmodels
 
-def crossmatching():
+
+def crossmatching1():
+    """
+    Crossmatching is done seperatel for LoTSS-NVSS with VLASS, since VLASS has a high resolution.
+    params=3 arcsec
+    """
     os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
-              tmatchn join1=always matcher=sky multimode=pairs nin=14 params=15 \
+              tmatchn join1=always matcher=sky multimode=pairs nin=2 params=3 \
         in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/crossmatch_NVSS_LoTSS.fits values1="RA DEC" \
         in2=/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/vlass_catalog_10000.fits values2="ra dec" \
-        in3=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/TGSS.fits values3="RAJ2000 DEJ2000" \
-        in4=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/VLSSr.fits values4="RAJ2000 DEJ2000" \
-        in5=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLLS_new_names.fits values5="RA DEC"\
-        in6=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/first_14dec17.fits values6="RA DEC"\
-        in7=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/inband_spec_LoTSS.fits values7="RA DEC" \
-        in8=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_0_source.fits values8="RA DEC" \
-        in9=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_1_source.fits values9="RA DEC" \
-        in10=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_2_source.fits values10="RA DEC" \
-        in11=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_3_source.fits values11="RA DEC"\
-        in12=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband//channel_4_source.fits values12="RA DEC"\
-        in13=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_5_source.fits values13="RA DEC" \
-        in14=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/WENSS.fits values14="_RAJ2000 _DEJ2000" \
+        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/mega_master_10000_intermediate.fits')
+    
+    print("crossmatching 1 done")
+    
+def crossmatching2():
+    
+    """
+    Crossmatching for the LoTSS NVSS VLASS sample with all the other radio surveys.
+    params=15 arcsec
+    """
+    os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
+              tmatchn join1=always matcher=sky multimode=pairs nin=13 params=15 \
+        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/mega_master_10000_intermediate.fits values1="RA_1 DEC_1" \
+        in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/TGSS.fits values2="RAJ2000 DEJ2000" \
+        in3=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/VLSSr.fits values3="RAJ2000 DEJ2000" \
+        in4=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLLS_new_names.fits values4="RA DEC"\
+        in5=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/first_14dec17.fits values5="RA DEC"\
+        in6=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/inband_spec_LoTSS.fits values6="RA DEC" \
+        in7=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_0_source.fits values7="RA DEC" \
+        in8=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_1_source.fits values8="RA DEC" \
+        in9=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_2_source.fits values9="RA DEC" \
+        in10=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_3_source.fits values10="RA DEC"\
+        in11=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband//channel_4_source.fits values11="RA DEC"\
+        in12=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_5_source.fits values12="RA DEC" \
+        in13=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/WENSS.fits values13="_RAJ2000 _DEJ2000" \
         out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/mega_master_10000.fits')
     
-    print("crossmatching done")
-#crossmatching()
+    print("crossmatching 2 done")
+# crossmatching1()
+# crossmatching2()
+
 """
 We now have a crossmatched table, this needs to be cleaned, put in the same units,
 and for some the errors need to be convoluted with a percentage of the flux.
@@ -38,15 +58,13 @@ Below the spectral indices will be calculated as well
 """
 
 #TODO: select only isoladed LoLSS sources? we do something somewhere with LoLSS rms? See make_tab_PS
-#TODO: vlass upper limits check: are things outside footprint dealt with correctly?
-#TODO: proper variable names in VLASS stuff
 
 #Load in the data
 hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/mega_master_10000.fits")
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 hdulist.close()
-print(orig_cols)
+# print(orig_cols)
 
 #For all the surveys, define properly the arrays such that they are in the right units, etc
 #LoTSS
@@ -59,10 +77,11 @@ e_S_LoTSS = np.sqrt(stat_e_S_LoTSS**2 + (0.1*S_LoTSS)**2) # Combine the statisti
 
 #NVSS
 S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['S1_4'])/1000. # Jy
-S_NVSS, e_S_NVSS = np.where(np.isnan(S_NVSS), 0, S_NVSS), np.where(np.isnan(S_NVSS), 0, e_S_NVSS) #deal with any non-detections
+S_NVSS, e_S_NVSS = np.where(np.isnan(S_NVSS), 0., S_NVSS), np.where(np.isnan(S_NVSS), 0., e_S_NVSS) #deal with any non-detections
 
 #VLASS
 S_VLASS, stat_e_S_VLASS = np.array(tbdata['int_flux']), np.array(tbdata['err_int_flux']) # Jy
+S_VLASS, stat_e_S_VLASS = np.where(np.isnan(S_VLASS), 0., S_VLASS), np.where(np.isnan(S_VLASS), 0., stat_e_S_VLASS) #deal with any non-detections
 badfit_mask = (stat_e_S_VLASS== -1. ) #anything with a bad fit has this flag, then no error can be attributed
 
 #make sure any non-detections become upper limits with error -1, value equal to sensitivity of vlass
@@ -102,22 +121,22 @@ S_inband_high, e_S_inband_high = np.array(tbdata['M1_L3flux']), 0.1 * np.array(t
 S_inband_high, e_S_inband_high = np.where(np.isnan(S_inband_high), 0, S_inband_high), np.where(np.isnan(S_inband_high), 0, e_S_inband_high)
 
 #inband_LoLSS
-S_channel0, e_S_channel0 = tbdata['Total_flux_8']/1000., tbdata['E_Total_flux_8']/1000. # Jy
+S_channel0, e_S_channel0 = tbdata['Total_flux_7']/1000., tbdata['E_Total_flux_7']/1000. # Jy
 S_channel0, e_S_channel0 = np.where(np.isnan(S_channel0), 0, S_channel0), np.where(np.isnan(S_channel0), 0, e_S_channel0)
 
-S_channel1, e_S_channel1 = tbdata['Total_flux_9']/1000., tbdata['E_Total_flux_9']/1000. # Jy
+S_channel1, e_S_channel1 = tbdata['Total_flux_8']/1000., tbdata['E_Total_flux_8']/1000. # Jy
 S_channel1, e_S_channel1 = np.where(np.isnan(S_channel1), 0, S_channel1), np.where(np.isnan(S_channel1), 0, e_S_channel1)
 
-S_channel2, e_S_channel2 = tbdata['Total_flux_10']/1000., tbdata['E_Total_flux_10']/1000. # Jy
+S_channel2, e_S_channel2 = tbdata['Total_flux_9']/1000., tbdata['E_Total_flux_9']/1000. # Jy
 S_channel2, e_S_channel2 = np.where(np.isnan(S_channel2), 0, S_channel2), np.where(np.isnan(S_channel2), 0, e_S_channel2)
 
-S_channel3, e_S_channel3 = tbdata['Total_flux_11']/1000., tbdata['E_Total_flux_11']/1000. # Jy
+S_channel3, e_S_channel3 = tbdata['Total_flux_10']/1000., tbdata['E_Total_flux_10']/1000. # Jy
 S_channel3, e_S_channel3 = np.where(np.isnan(S_channel3), 0, S_channel3), np.where(np.isnan(S_channel3), 0, e_S_channel3)
 
-S_channel4, e_S_channel4 = tbdata['Total_flux_12']/1000., tbdata['E_Total_flux_12']/1000. # Jy
+S_channel4, e_S_channel4 = tbdata['Total_flux_11']/1000., tbdata['E_Total_flux_11']/1000. # Jy
 S_channel4, e_S_channel4 = np.where(np.isnan(S_channel4), 0, S_channel4), np.where(np.isnan(S_channel4), 0, e_S_channel4)
 
-S_channel5, e_S_channel5 = tbdata['Total_flux_13']/1000., tbdata['E_Total_flux_13']/1000. # Jy
+S_channel5, e_S_channel5 = tbdata['Total_flux_12']/1000., tbdata['E_Total_flux_12']/1000. # Jy
 S_channel5, e_S_channel5 = np.where(np.isnan(S_channel5), 0, S_channel5), np.where(np.isnan(S_channel5), 0, e_S_channel5)
 
 #WENSS
@@ -146,7 +165,7 @@ freq_LoLLS_ch5 = 64.
 freq_VLASS = 3000.
 
 
-def spectral_index_eval_norms(freq,flux,flux_err):
+def spectral_index_eval_norms(freq,flux,flux_err, alpha_in=0.7):
     """
     This is a function that fits the power law to an array of frequencies, fluxes and flux errors
     that are entered as input. First it is checked whether these are positive, if there are no
@@ -163,7 +182,7 @@ def spectral_index_eval_norms(freq,flux,flux_err):
 
   #  peakfreq = freqplot[np.where(fluxplot == max(fluxplot))] #Frequency where flux is highest
     peakflux = max(fluxplot) #highest flux in the array
-    p0pow = [peakflux,0.7] #initial values for the fit, a=peakflux, alpha=0.7. Not sure why a=peak_flux as initial value?
+    p0pow = [peakflux, alpha_in]#[peakflux,0.7] #initial values for the fit, a=peakflux, alpha=0.7. Not sure why a=peak_flux as initial value?
 
     try:
         poptpowlaw, pcovpowlaw = opt.curve_fit(gpscssmodels.powlaw, freqplot, fluxplot, p0 = p0pow, sigma = flux_errplot, maxfev = 10000)
@@ -287,7 +306,7 @@ for i in tqdm(range(np.shape(flux_high[1])[0])):
     # print('Processing '+ Name_source[i])
     # Fit LoTSS to NVSS
     if spectral_index_eval_norms(freq_high,flux_high[:,i],flux_err_high[:,i]) == 'Curve_fit could not fit powerlaw.':
-        print('Could not fit high powerlaw to '+ Name_source[i])
+        print('Could not fit error in high powerlaw to '+ Name_source[i])
         continue
     else:
         poptpowlaw_high, pcovpowlaw_high, fluxplot_high, freqplot_high, flux_errplot_high = spectral_index_eval_norms(freq_high,flux_high[:,i],flux_err_high[:,i])
@@ -357,6 +376,7 @@ norm_high_array[S_match]= norm_high
 
 """
 Here we do the fitting for LoTSS NVSS VLASS. I have added a '2' to all variables since this helps keep track of them.
+Not pretty but it works
 
 """
 freq2, freq_high2, freq_low2, flux2, flux_err2, flux_high2, flux_low2, flux_err_high2, flux_err_low2, S_match2 = make_fluxes_VLASS()
@@ -382,7 +402,7 @@ start2 = time.time()
 for i in tqdm(range(np.shape(flux_high2[1])[0])):
     # print('Processing '+ Name_source[i])
     # Fit NVSS to VLASS
-    if spectral_index_eval_norms(freq_high2,flux_high2[:,i],flux_err_high2[:,i]) == 'Curve_fit could not fit powerlaw.':
+    if spectral_index_eval_norms(freq_high2, flux_high2[:,i], flux_err_high2[:,i]) == 'Curve_fit could not fit powerlaw.':
         print('Could not fit high powerlaw to '+ Name_source2[i])
         continue
     else:
@@ -401,9 +421,9 @@ for i in tqdm(range(np.shape(flux_high2[1])[0])):
         p0pow2 = [1400.,alpha_high2[i]]
         popt_err_high_l2, pcov_err_high_l2 = opt.curve_fit(gpscssmodels.powlaw, [1400., 3000.], [NVSS_min, VLASS_max], p0 = p0pow2, maxfev = 10000)
         try:
-            popt_err_high_up2, pcov_err_high_up2 = opt.curve_fit(gpscssmodels.powlaw, [1400., 3000.], [NVSS_max, VLASS_min], p0 = p0pow2, maxfev = 10000)
+            popt_err_high_up2, pcov_err_high_up2 = opt.curve_fit(gpscssmodels.powlaw, [1400., 3000.], [NVSS_max, VLASS_min], p0 = p0pow2, maxfev = 100000)
         except:
-            print('Could not fit high powerlaw to '+ Name_source2[i])
+            print('Could not fit error high powerlaw to '+ Name_source2[i])
             continue
         #TODO: find out why I need to do an except here, better initial values?
 
@@ -480,28 +500,28 @@ col13 = fits.Column(name='e_VLASS_flux', format = 'E', array = e_S_VLASS)
 col14 = fits.Column(name='VLASS_index', format = '8A', array = tbdata['index'])
 col43 = fits.Column(name='VLASS_flags', format = '8A', array = tbdata['flags'])
 
-col15 = fits.Column(name='TGSS_RA', format = 'E', array = tbdata['RAJ2000_3'])
-col16 = fits.Column(name='TGSS_Dec', format = 'E', array = tbdata['DEJ2000_3'])
+col15 = fits.Column(name='TGSS_RA', format = 'E', array = tbdata['RAJ2000_2'])
+col16 = fits.Column(name='TGSS_Dec', format = 'E', array = tbdata['DEJ2000_2'])
 col17 = fits.Column(name='TGSS_flux', format = 'E', array = S_TGSS)
 col18 = fits.Column(name='e_TGSS_flux', format = 'E', array = e_S_TGSS)
 
-col19 = fits.Column(name='VLSSr_RA', format = 'E', array = tbdata['RAJ2000_4'])
-col20 = fits.Column(name='VLSSr_Dec', format = 'E', array = tbdata['DEJ2000_4'])
+col19 = fits.Column(name='VLSSr_RA', format = 'E', array = tbdata['RAJ2000_3'])
+col20 = fits.Column(name='VLSSr_Dec', format = 'E', array = tbdata['DEJ2000_3'])
 col21 = fits.Column(name='VLSSr_flux', format = 'E', array = S_VLSSr)
 col22 = fits.Column(name='e_VLSSr_flux', format = 'E', array = e_S_VLSSr)
 
-col23 = fits.Column(name='LoLSS_RA', format = 'E', array = tbdata['RA_5'])
-col24 = fits.Column(name='LoLSS_Dec', format = 'E', array = tbdata['DEC_5'])
+col23 = fits.Column(name='LoLSS_RA', format = 'E', array = tbdata['RA_4'])
+col24 = fits.Column(name='LoLSS_Dec', format = 'E', array = tbdata['DEC_4'])
 col25 = fits.Column(name='LoLSS_flux', format = 'E', array = S_LoLSS)
 col26 = fits.Column(name='e_LoLSS_flux', format = 'E', array = e_S_LoLSS)
 
-col27 = fits.Column(name='FIRST_RA', format = 'E', array = tbdata['RA_6'])
-col28 = fits.Column(name='FIRST_Dec', format = 'E', array = tbdata['DEC_6'])
+col27 = fits.Column(name='FIRST_RA', format = 'E', array = tbdata['RA_5'])
+col28 = fits.Column(name='FIRST_Dec', format = 'E', array = tbdata['DEC_5'])
 col29 = fits.Column(name='FIRST_flux', format = 'E', array = S_FIRST)
 col30 = fits.Column(name='e_FIRST_flux', format = 'E', array = e_S_FIRST) 
 
-col31 = fits.Column(name='inband_RA', format = 'E', array = tbdata['RA_7'])
-col32 = fits.Column(name='inband_Dec', format = 'E', array = tbdata['DEC_7'])
+col31 = fits.Column(name='inband_RA', format = 'E', array = tbdata['RA_6'])
+col32 = fits.Column(name='inband_Dec', format = 'E', array = tbdata['DEC_6'])
 col33 = fits.Column(name='S_inband_low', format = 'E', array = S_inband_low)
 col34 = fits.Column(name='e_S_inband_low', format = 'E', array = e_S_inband_low)
 col35 = fits.Column(name='S_inband_mid', format = 'E', array = S_inband_mid)
@@ -509,33 +529,33 @@ col36 = fits.Column(name='e_S_inband_mid', format = 'E', array = e_S_inband_mid)
 col37 = fits.Column(name='S_inband_high', format = 'E', array = S_inband_high)
 col38 = fits.Column(name='e_S_inband_high', format = 'E', array = e_S_inband_high)
 
-col39 = fits.Column(name='channel0_RA', format = 'E', array= tbdata['RA_8'])
-col40 = fits.Column(name='channel0_Dec', format = 'E', array = tbdata['DEC_8'])
+col39 = fits.Column(name='channel0_RA', format = 'E', array= tbdata['RA_7'])
+col40 = fits.Column(name='channel0_Dec', format = 'E', array = tbdata['DEC_7'])
 col41 = fits.Column(name='channel0_flux', format = 'E', array = S_channel0) #Jansky
 col42 = fits.Column(name='e_channel0_flux', format = 'E', array = e_S_channel0)
 
-col44 = fits.Column(name='channel1_RA', format = 'E', array= tbdata['RA_9'])
-col45 = fits.Column(name='channel1_Dec', format = 'E', array = tbdata['DEC_9'])
+col44 = fits.Column(name='channel1_RA', format = 'E', array= tbdata['RA_8'])
+col45 = fits.Column(name='channel1_Dec', format = 'E', array = tbdata['DEC_8'])
 col46 = fits.Column(name='channel1_flux', format = 'E', array = S_channel1)
 col47 = fits.Column(name='e_channel1_flux', format = 'E', array = e_S_channel1)
 
-col48 = fits.Column(name='channel2_RA', format = 'E', array= tbdata['RA_10'])
-col49 = fits.Column(name='channel2_Dec', format = 'E', array = tbdata['DEC_10'])
+col48 = fits.Column(name='channel2_RA', format = 'E', array= tbdata['RA_9'])
+col49 = fits.Column(name='channel2_Dec', format = 'E', array = tbdata['DEC_9'])
 col50 = fits.Column(name='channel2_flux', format = 'E', array = S_channel2)
 col51 = fits.Column(name='e_channel2_flux', format = 'E', array = e_S_channel2)
 
-col52 = fits.Column(name='channel3_RA', format = 'E', array= tbdata['RA_11'])
-col53 = fits.Column(name='channel3_Dec', format = 'E', array = tbdata['DEC_11'])
+col52 = fits.Column(name='channel3_RA', format = 'E', array= tbdata['RA_10'])
+col53 = fits.Column(name='channel3_Dec', format = 'E', array = tbdata['DEC_10'])
 col54 = fits.Column(name='channel3_flux', format = 'E', array = S_channel3)
 col55 = fits.Column(name='e_channel3_flux', format = 'E', array = e_S_channel3)
 
-col56 = fits.Column(name='channel4_RA', format = 'E', array= tbdata['RA_12'])
-col57 = fits.Column(name='channel4_Dec', format = 'E', array = tbdata['DEC_12'])
+col56 = fits.Column(name='channel4_RA', format = 'E', array= tbdata['RA_11'])
+col57 = fits.Column(name='channel4_Dec', format = 'E', array = tbdata['DEC_11'])
 col58 = fits.Column(name='channel4_flux', format = 'E', array = S_channel4)
 col59 = fits.Column(name='e_channel4_flux', format = 'E', array = e_S_channel4)
 
-col60 = fits.Column(name='channel5_RA', format = 'E', array= tbdata['RA_13'])
-col61 = fits.Column(name='channel5_Dec', format = 'E', array = tbdata['DEC_13'])
+col60 = fits.Column(name='channel5_RA', format = 'E', array= tbdata['RA_12'])
+col61 = fits.Column(name='channel5_Dec', format = 'E', array = tbdata['DEC_12'])
 col62 = fits.Column(name='channel5_flux', format = 'E', array = S_channel5)
 col63 = fits.Column(name='e_channel5_flux', format = 'E', array = e_S_channel5)
 
