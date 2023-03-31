@@ -12,7 +12,7 @@ from scipy.stats import iqr
 #plt.style.use('style.mplstyle')
 
 #Load in the table
-hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/mega_master_10000_clean.fits')
+hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/mega_master_clean.fits')
 sample='VLASS' #This van be either VLASS for the sample LoTSS NVSS VLASS, or LoLSS for LoLSS LoTSS NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
@@ -42,9 +42,7 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
 
     if sample == 'VLASS':
         #We want to exlude all VLASS bad fits
-        source_bright_ind = np.where((flux_sample > 0.000) & (tbdata['VLASS_flags']=='0')) 
-                            #          & (tbdata['e_alpha_high_VLASS']<=1))#& (tbdata['e_alpha_high_VLASS']!=0.)  )      
-        #source_bright_ind = np.where((flux_sample > brightness_limit))
+        source_bright_ind = np.where((flux_sample > brightness_limit) )#& (tbdata['VLASS_flags']=='0')) 
     else:
         source_bright_ind = np.where((flux_sample > brightness_limit))
 
@@ -54,10 +52,7 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
 
     err_alpha_low = np.median(tbdata['e_alpha_low_'+sample][source_bright_ind])
     err_alpha_high = np.median(tbdata['e_alpha_high_'+sample][source_bright_ind])
-    print(err_alpha_low, err_alpha_high)
-
-    x = alpha_low
-    y = alpha_high
+    print('err alpha_low:',err_alpha_low, 'err alpha_high:',err_alpha_high)
 
     # plt.clf()
     fig = plt.figure(0,figsize=(15, 10))
@@ -83,6 +78,7 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
     try:
         H, X, Y = np.histogram2d(alpha_low.flatten(), alpha_high.flatten(), bins=(X, Y))
                                 #weights=kwargs.get('weights', None))
+
     except ValueError:
         raise ValueError("It looks like at least one of your sample columns "
                         "have no dynamic range. You could try using the "
@@ -117,8 +113,9 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
 
     if i_bins < 2:
         # ax.contourf(X1, Y1, H.T, [16,255], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
-        ax.contourf(X1, Y1, H.T, [15,75,145,265], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
-        print(V[::-1])
+        ax.contourf(X1, Y1, H.T, [90, 226,778,1673], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
+        #ax.contourf(X1, Y1, H.T, [15,75,145,265], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
+        print('Use these values for contours', V[::-1])
         # [V[-1], H.max()]
         ax.pcolor(X, Y, H.max() - H.T, cmap=cmap, shading = 'auto', zorder=10) # if you don't want the grey scale beind, comment this line out.
         CS = ax.contour(X1, Y1, H.T, V[::-1], colors='k', linewidths=1.5)
@@ -126,9 +123,9 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
 
     fake_cs_contour = ax.scatter(np.linspace(1000, H.max()), np.linspace(1000, H.max()),c =  np.linspace(0, H.max()), cmap=plt.cm.Greys) # fake data to get the correct colourbar
     cax_contour = fig.add_axes([0.15, 0.68, 0.2, 0.02]) # adding axes for colourbar to put in the plot
-    cbar_contour = fig.colorbar(fake_cs_contour,cax=cax_contour,orientation='horizontal',ticks=[0,50,100,150,200,250])
+    cbar_contour = fig.colorbar(fake_cs_contour,cax=cax_contour,orientation='horizontal',ticks=[0,500,1000,1500,2000])
     cbar_contour.ax.tick_params(size = 4, labelsize = 10)
-    cbar_contour.set_ticklabels([0,50,100,150,200,250]) # because you need to subtract the value from the max above, the tick labels are inverted.
+    cbar_contour.set_ticklabels([0,500,1000,1500,2000]) # because you need to subtract the value from the max above, the tick labels are inverted.
     cbar_contour.solids.set_rasterized(True)
 
 
@@ -149,9 +146,13 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
     y_diag = compx
     ax.plot(compx,y_diag,linestyle = '--',color = 'red')
     
-    gps_y_vert = np.linspace(ymin,ymax) 
-    gps_x_vert = np.ones(len(gps_y_vert)) * 0.1
-    ax.plot(gps_x_vert,gps_y_vert,linestyle = '-',color = 'dodgerblue')
+    if sample == 'VLASS':
+        x_limit = 0.0
+    else:
+     x_limit = 0.1
+
+    ax.vlines(x_limit, ymin, ymax, color='dodgerblue', zorder=10)
+    ax.hlines(0, xmin, xmax, color='dodgerblue', zorder=10)
 
     # GPS sel line
     #gps_x_sel = np.arange(-2.6,2.1,0.01)
@@ -253,4 +254,4 @@ for i_bins in range(1): #range(len(bins_list)):, change range to plot for all br
     print('Brightness limit of ' + str(brightness_limit) + ' Jy has a total of ' + str(np.shape(source_bright_ind)[1]) + ' sources')
     print(str(np.round(perc_peaked_source,2)) + ' % of sources are PS (',np.shape(ind_peaked)[1],')')
     print('a_low median + std', np.median(alpha_low), np.std(alpha_low), a_low_siqr)
-    print('a_high median + std', np.median(alpha_high[ind_peaked]), np.std(alpha_high[ind_peaked]), a_high_siqr)
+    print('a_high median + std', np.median(alpha_high), np.std(alpha_high), a_high_siqr)

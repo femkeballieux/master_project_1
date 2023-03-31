@@ -5,7 +5,7 @@ import numpy as np
 import os
 from numpy import genfromtxt
 from astropy.wcs.wcs import NoConvergence
-# from astroquery.cadc import Cadc
+from astroquery.cadc import Cadc
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy import table  
@@ -270,7 +270,7 @@ def get_url(coordinate, radius = 0.25 * u.arcmin):
     from overwriting eachother
     """
     start=time.time() 
-    save_to_path ='/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/' #Where the image will be stored
+
 
     #Code below retrieves the urls, image type and filenames. Can be more than 1 image per query
     (CadcUrl, vlassTypes, fitsnames) = getCadcVlassUrl(coordinate, radius, epoch=["2.1", "2.2"], imageType='ql.tt0') 
@@ -423,34 +423,6 @@ def read_file(filename):
     hdulist = Table.read(path_out + '/' + filename)
     return(hdulist)
 
-# def make_catalog():
-#   """
-#   Reads in the output files from aegean and turns them into a single catalog
-#   """
-#   path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
-#   list_list=[]#A list that keeps track of all the different tables
-
-#   #run over all files that have been outputted
-#   filenames = os.listdir(path_out)
-#   for j, filename in enumerate(filenames): #Run over all files
-#     print(j)
-#     #Get the table
-#     table_list = read_file(filename)
-
-#     #store the index, to rule out duplicates
-#     inx=filename.split('_')
-#     index_info = np.full(len(table_list[0][:]), inx[0], dtype="S5" ) #make an array with the index
-#     table_list['index'] = index_info
-          
-#     #Add it to the list keeping track of all lists
-#     list_list.append(table_list)
-#   print('Doing the vstack')
-#   #This is the final catalog
-#   catalog = vstack(list_list)
-#   print('writing the catalog')
-#   catalog.write('vlass_catalog_all.fits', overwrite = True)
-
-
 def make_catalog():
   """
   Reads in the output files from aegean and turns them into a single catalog
@@ -460,7 +432,7 @@ def make_catalog():
 
   #run over all files that have been outputted
   filenames = os.listdir(path_out)
-  for j, filename in enumerate(filenames[:80000]): #Run over all files
+  for j, filename in enumerate(filenames): #Run over all files
     print(j)
     #Get the table
     table_list = read_file(filename)
@@ -476,85 +448,74 @@ def make_catalog():
   #This is the final catalog
   catalog = vstack(list_list)
   print('writing the catalog')
-  catalog.write('vlass_catalog_all_1.fits', overwrite = True)
-  
-  list_list=[]
-  for j, filename in enumerate(filenames[80000:]): #Run over all files
-    print(j)
-    #Get the table
-    table_list = read_file(filename)
+  catalog.write('vlass_catalog_all.fits', overwrite = True)
 
-    #store the index, to rule out duplicates
-    inx=filename.split('_')
-    index_info = np.full(len(table_list[0][:]), inx[0], dtype="S5" ) #make an array with the index
-    table_list['index'] = index_info
-          
-    #Add it to the list keeping track of all lists
-    list_list.append(table_list)
-  print('Doing the vstack')
-  #This is the final catalog
-  catalog = vstack(list_list)
-  print('writing the catalog')
-  catalog.write('vlass_catalog_all_2.fits', overwrite = True)
+  """
+  This function works fine for a few files, but it not good with memory for many files.
+  what to do:
+      cd to the directory of your aegean catalogs
+      ls > filenames.txt
+      move this file one directory up
+      check if filenames.txt does not contain itself
+      
+      java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts tcat in=@/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/filenames.txt out=/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/vlass_catalog.fits lazy=true seqcol=input_table uloccol=filename
+
+      This function does not give an output, does it a few minutes
+  """
 
 
 if __name__ == '__main__':
  	# set the start method
-#     multiprocessing.set_start_method('spawn')
-#     # begin_number = 0
-#     # end_number = 10000
+    multiprocessing.set_start_method('spawn')
+    # begin_number = 0
+    # end_number = 10000
     
-#     """
-#     Below, we import the coordinates and turn it into a coordinate object. These coordinates
-#     are looped over for the downloading of the images
-#     """
-#     path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
-#     path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
-#     path_image = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
-#     #mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
-#     LoTSS_sample = 'crossmatch_NVSS_LoTSS.fits'
+    """
+    Below, we import the coordinates and turn it into a coordinate object. These coordinates
+    are looped over for the downloading of the images
+    """
+    path_to_mastersample= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/' 
+    path_out = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_all_output/'
+    path_image = '/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean/VLASS_images_all/'
+    #mastersample = 'master_LoLSS_with_inband.fits' #Mastersample is taken now
+    LoTSS_sample = 'crossmatch_NVSS_LoTSS.fits'
 
-#     #Read in our mastersample for the coordinates
-#     hdulist = fits.open(path_to_mastersample + LoTSS_sample)
-#     tbdata = hdulist[1].data
-#     orig_cols = hdulist[1].columns
-#     hdulist.close()
+    #Read in our mastersample for the coordinates
+    hdulist = fits.open(path_to_mastersample + LoTSS_sample)
+    tbdata = hdulist[1].data
+    orig_cols = hdulist[1].columns
+    hdulist.close()
 
-#     #Coordinates
-#     RA = tbdata['RA']
-#     Dec = tbdata['DEC'] #Pay attention to proper column names
+    #Coordinates
+    RA = tbdata['RA']
+    Dec = tbdata['DEC'] #Pay attention to proper column names
 
-#     coordinates = SkyCoord(ra=RA, dec=Dec, frame='icrs', unit='deg')
+    coordinates = SkyCoord(ra=RA, dec=Dec, frame='icrs', unit='deg')
     
-#     #check which files are alreasy cleaned by Aegean
-#     print('Checking which files already have an Aegean output')
-#     filenames = os.listdir(path_out)
-#     index_done=[int(filenames[i].split('_')[0]) for i in range(len(filenames))]
-#  #   index_done_array=np.array(index_done)
+    #check which files are already cleaned by Aegean
+    print('Checking which files already have an Aegean output')
+    filenames = os.listdir(path_out)
+    index_done=[int(filenames[i].split('_')[0]) for i in range(len(filenames))]
+  #   index_done_array=np.array(index_done)
 
-#     mask_notdone = np.ones((len(coordinates)), dtype=bool)
-#     mask_notdone[index_done] = False
+    mask_notdone = np.ones((len(coordinates)), dtype=bool)
+    mask_notdone[index_done] = False
     
-#     print('Checking which files already have a cutout')
-#     filenames_image = os.listdir(path_image)
-#     index_image=[int(filenames_image[i].split('_')[0]) for i in range(len(filenames_image))]
-# #    index_image_array=np.array(index_image)
-#     mask_notdone[index_image] = False
+    print('Checking which files already have a cutout')
+    filenames_image = os.listdir(path_image)
+    index_image=[int(filenames_image[i].split('_')[0]) for i in range(len(filenames_image))]
+#    index_image_array=np.array(index_image)
+    mask_notdone[index_image] = False
 
-#     indexes=np.array(range(len(coordinates)))
+    indexes=np.array(range(len(coordinates)))
     
-#     starttime = time.time()
-#     pool = multiprocessing.Pool()
-#     func = partial(multiprocessing_func, coordinates)
-#     pool.map(func, indexes[mask_notdone])
-#     pool.close()
-#     pool.join()
-#     print('That took {} seconds'.format(time.time() - starttime))
+    starttime = time.time()
+    pool = multiprocessing.Pool()
+    func = partial(multiprocessing_func, coordinates)
+    pool.map(func, indexes[mask_notdone])
+    pool.close()
+    pool.join()
+    print('That took {} seconds'.format(time.time() - starttime))
     
-    print('making catalog')
-    make_catalog() #Makes catalog of all sources found
-
-
-#TODO: The code that crossmatches it and deals with bad fits, non-detections
-#TODO: Once that is fixed, also get the BANE rms for the non-detections
-
+   #print('making catalog')
+    # make_catalog() #Makes catalog of all sources found

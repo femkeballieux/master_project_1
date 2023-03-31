@@ -14,8 +14,7 @@ import gpscssmodels
 """
 for explanation on plot, see paper bu Martje, figure 1. Femkes adaptations:
     -I have added LoLSS DR1, by looking into the catalog and finding the lowest total fluxes reported
-    -I have added VLASS (which is an estimate now, taken from https://arxiv.org/pdf/2102.11753.pdf). Need to still fix the 
-    actual lowest observed flux. Ask Joe?
+    -Also lowest flux reported in VLASS
     -need to add the curve of my research once we know what we are going to be doing. 
 
 """
@@ -68,7 +67,7 @@ ax.annotate('GLEAM', (freq_gleam[120],sens_gleam[700]), rotation = -37)
 ax.set_xscale('log')
 ax.set_yscale('log')
 ax.set_xlim([20,22000])
-ax.set_ylim([0.02,1200])
+ax.set_ylim([0.008,1200])
 
 ax.set_xlabel(r'Frequency (MHz)')
 ax.set_ylabel(r'Limiting Flux Density (mJy)')

@@ -16,7 +16,7 @@ path_vdesk= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
 
 #read in the data
 #hdulist = fits.open(path_vdesk + 'PS_with_vlass.fits')
-hdulist = fits.open(path_vdesk + 'mega_master_10000_clean.fits')
+hdulist = fits.open(path_vdesk + 'mega_master_clean.fits')
 high_survey = 'NVSS' #could also be first, but we use NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
@@ -238,7 +238,7 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     plt.show()
 
 
-make_sed_singular(tbdata['LoTSS_name'][1983], save_fig=False)
+make_sed_singular(tbdata['LoTSS_name'][46178], save_fig=False)
 # counter=0
 # for i, name in enumerate(name_list):
 #     #if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
