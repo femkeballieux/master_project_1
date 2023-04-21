@@ -4,6 +4,7 @@ Code written by Femke Ballieux, takes in the master sample and crossmatches it w
 #run on laptop
 import os
 import numpy as np
+
 from astropy.io import fits
 import time
 from tqdm import tqdm
@@ -16,7 +17,12 @@ from astropy.table import Table
 The official catalog is in data/surveys/CIRADA_VLASS2QLv1_table1_components.csv
 Using topcat, we define a subset with only duplicate flag 0 or 1, and only quality flag 0 or 4.
 This brings the number of rows from 2.995.271 to 2.446.020.
-Then we do the isolated unresolved no s_type=c. This leaves 399676
+Then we do the isolated in 47'' unresolved no s_type=c. This leaves 1326896 sources
+However, we want to remain unisolated sources where the flux is 10 times larger or more than the other source.
+Therefore we also make a selection on the sources that are not isolated, and have S or M S_code. These are 319861 sources. 
+We put these sources in he VLASS_isolated.py code, which was directly copied from Martje. 
+Now we have 2 VLASS catalogs, one with isolated sources, one not isolated but to be kept in anyway. 
+We add these tables together since they have the same columns. This gives xx sources
 This will then be read into the crossmatching code below 
 """
 
@@ -28,12 +34,13 @@ def crossmatching1():
     """
     print('er gebeurt iets')
     os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
-              tmatchn join1=always matcher=sky multimode=pairs nin=2 params=3 \
+              tmatchn join1=always matcher=sky multimode=pairs nin=2 params=6 \
         in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/crossmatch_NVSS_LoTSS.fits values1="RA DEC" \
-        in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_VLASS_no_duplicates.fits values2="RA DEC" \
-        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_intermediate.fits')
+        in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_VLASS_final_selection.fits values2="RA DEC" \
+        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master_intermediate_crossmatchtest_6.fits')
     
     print("crossmatching 1 done")
+
     
 def crossmatching2():
     
@@ -43,7 +50,7 @@ def crossmatching2():
     """
     os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
               tmatchn join1=always matcher=sky multimode=pairs nin=13 params=15 \
-        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_intermediate.fits values1="RA_1 DEC_1" \
+        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master_intermediate_crossmatchtest_6.fits values1="RA_1 DEC_1" \
         in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/TGSS.fits values2="RAJ2000 DEJ2000" \
         in3=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/VLSSr.fits values3="RAJ2000 DEJ2000" \
         in4=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLLS_new_names.fits values4="RA DEC"\
@@ -56,10 +63,10 @@ def crossmatching2():
         in11=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband//channel_4_source.fits values11="RA DEC"\
         in12=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_5_source.fits values12="RA DEC" \
         in13=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/WENSS.fits values13="_RAJ2000 _DEJ2000" \
-        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master.fits')
+        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master.fits')
     
     print("crossmatching 2 done")
-crossmatching1()
+# crossmatching1()
 crossmatching2()
 
 """
@@ -71,7 +78,7 @@ Below the spectral indices will be calculated as well
 #TODO: select only isolated LoLSS sources? we do something somewhere with LoLSS rms? See make_tab_PS
 
 #Load in the data
-hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master.fits")
+hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master.fits")
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 hdulist.close()
@@ -600,4 +607,4 @@ tbhdu = fits.BinTableHDU.from_columns(cols)
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  
 
-tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_clean.fits', overwrite = True)
+tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master_clean.fits', overwrite = True)

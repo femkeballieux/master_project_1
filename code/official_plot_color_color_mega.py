@@ -14,10 +14,10 @@ from scipy.stats import iqr
 # Load in the table
 hdulist = fits.open(
     '/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master_clean.fits')
-sample = 'LoLSS'  # This van be either VLASS for the sample LoTSS NVSS VLASS, or LoLSS for LoLSS LoTSS NVSS
+sample = 'VLASS'  # This van be either VLASS for the sample LoTSS NVSS VLASS, or LoLSS for LoLSS LoTSS NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
-print(orig_cols)
+# print(orig_cols)
 hdulist.close()
 
 flux_sample = tbdata[sample + '_flux']
@@ -45,13 +45,11 @@ for i_bins in range(1):
     brightness_limit = brightness_limit_list[i_bins]
     bins = bins_list[i_bins]
     SNR = tbdata['VLASS_flux'] / (tbdata['VLASS_isl_rms'] / 1000)
-    if sample == 'VLASS':
-        source_bright_ind = np.where((flux_sample > brightness_limit))
-    else:
-        source_bright_ind = np.where((flux_sample > brightness_limit))
+    source_bright_ind = np.where((flux_sample > brightness_limit))
 
     alpha_low = tbdata['alpha_low_'+sample][source_bright_ind]
     alpha_high = tbdata['alpha_high_'+sample][source_bright_ind]
+
 
     err_alpha_low = np.median(tbdata['e_alpha_low_'+sample][source_bright_ind])
     err_alpha_high = np.median(tbdata['e_alpha_high_'+sample][source_bright_ind])
@@ -213,10 +211,13 @@ for i_bins in range(1):
         cap.set_markeredgewidth(2)
 
     if sample == "VLASS":
+        ind_peaked = np.where((alpha_low >= (tbdata['e_alpha_low_'+sample][source_bright_ind]))
+                              & (alpha_high <= - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
+
+    else:
         ind_peaked = np.where((alpha_low >= np.median(tbdata['e_alpha_low_'+sample][source_bright_ind]))
                               & (alpha_high <= - np.median(tbdata['e_alpha_high_'+sample][source_bright_ind])))
-    else:
-        ind_peaked = np.where((alpha_low >= 0.1) & (alpha_high <= 0.0))
+        # ind_peaked = np.where((alpha_low >= 0.) & (alpha_high <= 0.0))
     perc_peaked_source = (np.shape(ind_peaked)[
                           1] / np.shape(source_bright_ind)[1]) * 100
 
