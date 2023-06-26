@@ -8,8 +8,9 @@ from astropy.modeling import models, fitting
 import matplotlib.cm as cm
 from matplotlib.colors import LinearSegmentedColormap
 from scipy.stats import iqr
+import scipy.stats as st
 
-# plt.style.use('style.mplstyle')
+plt.style.use('style.mplstyle')
 
 # Load in the table
 hdulist = fits.open(
@@ -44,7 +45,7 @@ i_bins = 0
 for i_bins in range(1):
     brightness_limit = brightness_limit_list[i_bins]
     bins = bins_list[i_bins]
-    SNR = tbdata['VLASS_flux'] / (tbdata['VLASS_isl_rms'] / 1000)
+    # SNR = tbdata['VLASS_flux'] / (tbdata['VLASS_isl_rms'] / 1000)
     source_bright_ind = np.where((flux_sample > brightness_limit))
 
     alpha_low = tbdata['alpha_low_'+sample][source_bright_ind]
@@ -56,7 +57,7 @@ for i_bins in range(1):
     print('err alpha_low:', err_alpha_low, 'err alpha_high:', err_alpha_high)
 
     # plt.clf()
-    fig = plt.figure(0, figsize=(15, 10))
+    fig = plt.figure(0, figsize=(15, 15))
     gs = plt.GridSpec(2, 2, wspace=0, hspace=0, width_ratios=[
                       7, 1], height_ratios=[1, 7])
     ax2 = plt.subplot(gs[0])  # top histo
@@ -102,8 +103,7 @@ for i_bins in range(1):
 
     X1, Y1 = 0.5 * (X[1:] + X[:-1]), 0.5 * (Y[1:] + Y[:-1])
     X, Y = X[:-1], Y[:-1]
-    ax.plot(alpha_low, alpha_high, "o", color='k',
-            ms=2, zorder=-1, alpha=0.2, rasterized=True)
+
 
     # cs_scatter = ax.scatter(alpha_low_mps, alpha_high_mps,s=10, color='k', zorder=-1, c = duff_curve[high_limit_duff_ind],lw=0, cmap=plt.cm.copper,
     #     rasterized=True, norm=matplotlib.colors.LogNorm())
@@ -117,8 +117,12 @@ for i_bins in range(1):
 
     if i_bins < 2:
         # ax.contourf(X1, Y1, H.T, [16,255], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
-        ax.contourf(X1, Y1, H.T, [90, 226, 778, 1673], cmap=LinearSegmentedColormap.from_list(
-            "cmap", ([1] * 3, [1] * 3), N=2), antialiased=False)
+        if sample == 'VLASS':
+            ax.contourf(X1, Y1, H.T, [104, 296, 916, 1975], cmap=LinearSegmentedColormap.from_list(
+                    "cmap", ([1] * 3, [1] * 3), N=2), antialiased=False)
+        elif sample == 'LoLSS':
+            ax.contourf(X1, Y1, H.T, [24, 80, 234, 421], cmap=LinearSegmentedColormap.from_list(
+                "cmap", ([1] * 3, [1] * 3), N=2), antialiased=False)
         #ax.contourf(X1, Y1, H.T, [15,75,145,265], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
         print('Use these values for contours', V[::-1])
         # [V[-1], H.max()]
@@ -130,11 +134,18 @@ for i_bins in range(1):
     )), c=np.linspace(0, H.max()), cmap=plt.cm.Greys)  # fake data to get the correct colourbar
     # adding axes for colourbar to put in the plot
     cax_contour = fig.add_axes([0.15, 0.68, 0.2, 0.02])
-    cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
-                                orientation='horizontal', ticks=[0, 500, 1000, 1500, 2000])
-    cbar_contour.ax.tick_params(size=4, labelsize=10)
-    # because you need to subtract the value from the max above, the tick labels are inverted.
-    cbar_contour.set_ticklabels([0, 500, 1000, 1500, 2000])
+    if sample == 'VLASS':
+        cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
+                                    orientation='horizontal', ticks=[0, 500, 1000, 1500, 2000])
+        cbar_contour.ax.tick_params(size=4, labelsize=10)
+        # because you need to subtract the value from the max above, the tick labels are inverted.
+        cbar_contour.set_ticklabels([0, 500, 1000, 1500, 2000])
+    else:
+        cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
+                                    orientation='horizontal', ticks=[0, 100, 200, 300, 400])
+        cbar_contour.ax.tick_params(size=4, labelsize=10)
+        # because you need to subtract the value from the max above, the tick labels are inverted.
+        cbar_contour.set_ticklabels([0, 100, 200, 300, 400])
     cbar_contour.solids.set_rasterized(True)
 
     ax.set_xlabel(r'$\alpha_{\mathrm{low}}$', fontsize=25)
@@ -160,8 +171,8 @@ for i_bins in range(1):
         x_limit = err_alpha_low
         y_limit = - err_alpha_high
     else:
-        x_limit = 0.1
-        y_limit = 0.0
+        x_limit = err_alpha_low
+        y_limit = - err_alpha_high
 
     ax.vlines(x_limit, ymin, ymax, color='dodgerblue', zorder=10)
     ax.hlines(y_limit, xmin, xmax, color='dodgerblue', zorder=10)
@@ -211,15 +222,20 @@ for i_bins in range(1):
         cap.set_markeredgewidth(2)
 
     if sample == "VLASS":
-        ind_peaked = np.where((alpha_low >= (tbdata['e_alpha_low_'+sample][source_bright_ind]))
-                              & (alpha_high <= - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
+        ind_peaked = np.where((alpha_low > (tbdata['e_alpha_low_'+sample][source_bright_ind]))
+                              & (alpha_high < - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
 
     else:
-        ind_peaked = np.where((alpha_low >= np.median(tbdata['e_alpha_low_'+sample][source_bright_ind]))
-                              & (alpha_high <= - np.median(tbdata['e_alpha_high_'+sample][source_bright_ind])))
+        ind_peaked = np.where((alpha_low > (tbdata['e_alpha_low_'+sample][source_bright_ind]))
+                              & (alpha_high < - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
         # ind_peaked = np.where((alpha_low >= 0.) & (alpha_high <= 0.0))
     perc_peaked_source = (np.shape(ind_peaked)[
                           1] / np.shape(source_bright_ind)[1]) * 100
+    ax.plot(alpha_low, alpha_high, "o", color='k',
+            ms=3, zorder=-1, alpha=0.2, rasterized=True)
+    #Do PS sources in different colors
+    ax.plot(alpha_low[ind_peaked], alpha_high[ind_peaked], "o", color='rebeccapurple',
+            ms=3, zorder=-1, alpha=0.2, rasterized=True)
 
     # ax.annotate(r'% peaked sources: ' + str(np.round(perc_peaked_source,2)), xy=(-2.4,1.70), xycoords='data', fontsize = 15)
     # ax.annotate(r'#N all sources: ' + str(np.round(np.shape(source_bright_ind)[1])), xy=(-2.4,1.50), xycoords='data', fontsize = 15)
@@ -269,6 +285,7 @@ for i_bins in range(1):
         '/net/vdesk/data2/bach1/ballieux/master_project_1/colour_colour_plots/official_colour_colour_'+sample+'_mega.png')
     # plt.show()
 
+    #Something with interquartile range
     a_low_siqr = iqr(alpha_low)/2
     a_high_siqr = iqr(alpha_high)/2
 
@@ -276,12 +293,19 @@ for i_bins in range(1):
           ' Jy has a total of ' + str(np.shape(source_bright_ind)[1]) + ' sources')
     print(str(np.round(perc_peaked_source, 2)) +
           ' % of sources are PS (', np.shape(ind_peaked)[1], ')')
-    print('a_low median + std', np.median(alpha_low),
-          np.std(alpha_low), a_low_siqr)
-    print('a_high median + std', np.median(alpha_high),
-          np.std(alpha_high), a_high_siqr)
+    print('alpha_low median + std', np.median(alpha_low),
+          np.std(alpha_low))
+    print('alpha_high median + std', np.median(alpha_high),
+          np.std(alpha_high))
     print('outliers<-2', len(alpha_high[alpha_high < -2]))
     print('Source with alpha_low > 2.5:', len(alpha_low[alpha_low > 2.5]), 'with coordinates', tbdata['RA'][source_bright_ind][alpha_low > 2.5],
       tbdata['DEC'][source_bright_ind][alpha_low>2.5], 'and alpha_low', alpha_low[alpha_low>2.5] , \
           '+/-' , tbdata['e_alpha_low_VLASS'][source_bright_ind][alpha_low>2.5], 'and alpha_high', alpha_high[alpha_low>2.5] , \
               '+/-' , tbdata['e_alpha_high_VLASS'][source_bright_ind][alpha_low>2.5] )
+        
+    #     #For LF
+    # limit_95 = iqr(alpha_low, rng=(5,50)) 
+    # print("95% distribution of alpha_low", np.median(alpha_low)-limit_95)
+        #For HF
+    limit_95 = iqr(alpha_low, rng=(50,95)) 
+    print("95% distribution of alpha_low", np.median(alpha_low)+limit_95)

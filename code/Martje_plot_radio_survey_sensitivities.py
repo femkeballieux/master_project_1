@@ -10,7 +10,7 @@ from astropy.modeling import models, fitting
 import matplotlib.cm as cm
 import gpscssmodels
 
-#plt.style.use('style.mplstyle')
+plt.style.use('style.mplstyle')
 """
 for explanation on plot, see paper bu Martje, figure 1. Femkes adaptations:
     -I have added LoLSS DR1, by looking into the catalog and finding the lowest total fluxes reported
@@ -38,18 +38,19 @@ freq_gps = np.linspace(15,23000,4000)
 # freq_gps2 = np.linspace(15,23000,1000)
 
 flux_gps1 = gpscssmodels.singSSA(freq_gps,80.,2.4,100) #slob et al. 2022
-flux_gps2 = gpscssmodels.singSSA(freq_gps,300.,2.4,750) #O'dea 1998
+# flux_gps2 = gpscssmodels.singSSA(freq_gps,300.,2.4,750) #O'dea 1998
 flux_gps3 = gpscssmodels.singSSA(freq_gps,160.,2.4,190) #callingham et al. 2017
-flux_gps4 = gpscssmodels.singSSA(freq_gps,16.,2.4,1400) #Guess values for LoTSS NVSS VLASS
-flux_gps5 = gpscssmodels.singSSA(freq_gps,30.,2.4,100.)  #Guess values for LoLSS LoTSS NVSS
+# flux_gps4 = gpscssmodels.singSSA(freq_gps,15.,2.4,1400) #Guess values for GPS
+flux_gps4 = gpscssmodels.singSSA(freq_gps,3.9,2.4,750) #Guess values for GPS
+flux_gps5 = gpscssmodels.singSSA(freq_gps,23.,2.4,100.)  #Guess values for MPS
 
 ax.plot(freq_survey,flux_lim_survey,marker='s',color='k',ls='none',markerfacecolor='none',markeredgewidth=2)
 ax.plot(freq_gleam,sens_gleam)
-ax.plot(freq_gps,flux_gps1,color='#377eb8',zorder=-1) 
-ax.plot(freq_gps,flux_gps2,ls='--',color='#ff7f00') 
-ax.plot(freq_gps,flux_gps3,ls='-.',color='#4daf4a') 
-ax.plot(freq_gps,flux_gps4,color='darkgreen') 
-ax.plot(freq_gps,flux_gps5,color='fuchsia')
+ax.plot(freq_gps,flux_gps1,ls=':', color='#377eb8', label='Slob et al. 2022') 
+# ax.plot(freq_gps,flux_gps2,ls='--',color='#ff7f00', label='O\'dea et al. 1998') 
+ax.plot(freq_gps,flux_gps3,ls='-.',color='#4daf4a', label='Callingham et al. 2017') 
+ax.plot(freq_gps,flux_gps4,color='darkgreen',zorder=-1, label='GPS sample') 
+ax.plot(freq_gps,flux_gps5,color='fuchsia',zorder=-1, label='MPS sample')
 
 for i, txt in enumerate(survey_list):
     if txt in ['AT20G']:
@@ -73,4 +74,5 @@ ax.set_xlabel(r'Frequency (MHz)')
 ax.set_ylabel(r'Limiting Flux Density (mJy)')
 ax.tick_params(axis='both',which='both',top=True,right=True)
 #plt.show()
+ax.legend(fontsize=14, loc='upper right')
 plt.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/survey_limits_new.png')

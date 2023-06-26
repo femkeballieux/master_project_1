@@ -16,7 +16,7 @@ path_vdesk= '/net/vdesk/data2/bach1/ballieux/master_project_1/data/'
 
 #read in the data
 #hdulist = fits.open(path_vdesk + 'PS_with_vlass.fits')
-hdulist = fits.open(path_vdesk + 'mega_master_clean.fits')
+hdulist = fits.open(path_vdesk + 'official_mega_master_clean.fits')
 high_survey = 'NVSS' #could also be first, but we use NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
@@ -164,8 +164,8 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     
     #general plotting settings
     plt.figure(figsize=(10,8))
-    plt.xlabel('frequency [MHz]', fontsize=14)
-    plt.ylabel('flux [Jy]',fontsize=14)
+    plt.xlabel('Frequency [MHz]', fontsize=14)
+    plt.ylabel('$S_{total}$ [Jy]',fontsize=14)
     plt.title(galaxy_name, fontsize=14)
     plt.yscale('log')
     plt.xscale('log')
@@ -217,9 +217,9 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     if alpha_low_VLASS[index]!=0.:
         
         plt.plot(x_range_mid, a_low_VLASS[index] * (x_range_mid ** alpha_low_VLASS[index]),\
-                 color='indigo', label='powerlaw low VLASS') 
+                 color='indigo', label='powerlaw high') #, label='powerlaw low GPS') 
         plt.plot(x_range_high, a_high_VLASS[index] * (x_range_high ** alpha_high_VLASS[index]),\
-                 color='blue', label='powerlaw high VLASS') 
+                 color='blue', label='powerlaw high') #, label='powerlaw high GPS') 
     else:
         print('no spectral index fit')
     
@@ -238,7 +238,7 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     plt.show()
 
 
-make_sed_singular(tbdata['LoTSS_name'][46178], save_fig=False)
+make_sed_singular(tbdata['LoTSS_name'][42048], save_fig=True)
 # counter=0
 # for i, name in enumerate(name_list):
 #     #if (alpha_low[i] >= 0.1) & (alpha_high[i]<=0): #select when a source is PS
