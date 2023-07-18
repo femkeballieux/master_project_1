@@ -119,7 +119,7 @@ VLASS_limit = 0.0021 * ((3000/1400)**(alpha_mean))
 #A source is detected at 5 sigma, so a field is bad when the rms is higher than
 VLASS_rms_limit = (VLASS_limit / 5) *1e6 #muJy
 print('VLASS rms limit', VLASS_rms_limit)
-ax.axvline(VLASS_rms_limit,color='blue',lw=2,ls='--', label='Bad fields limit at {:.4} muJy'.format(VLASS_rms_limit))
+ax.axvline(VLASS_rms_limit,color='blue',lw=2,ls='--', label='High-noise limit at {:.4} muJy'.format(VLASS_rms_limit))
 ax.legend()
 plt.savefig('rms_analysis_histo.png',bbox_inches='tight')
 #The amount of bad fields

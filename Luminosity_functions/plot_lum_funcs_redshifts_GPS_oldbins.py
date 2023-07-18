@@ -11,7 +11,7 @@ import matplotlib.gridspec as gridspec
 from scipy import stats
 from astropy.cosmology import FlatLambdaCDM
 import astropy.units as u
-
+from scipy import stats
 
 def local_correction(z):
     h=cosmo.H(0).value/100
@@ -67,35 +67,38 @@ plt.style.use('/net/vdesk/data2/bach1/ballieux/master_project_1/code/style.mplst
 
 # VLASS fractional area
 str_to_deg2 = (180/np.pi)**2
-frac_area_VLASS = 5634 / (4*np.pi * str_to_deg2)  #sr, LoLSS sky coverage (650 deg2)
+frac_area_VLASS = 5634 / (4*np.pi * str_to_deg2)  #sr, 
 
 # Define different redshift bins, all bins have ~100+ sources
-redshift_bins = [0.,0.1,0.3,0.5,0.7,0.9,1.4,3.,3.]
+redshift_bins = [0.,0.1,0.5,1.,1.5,3.,3.]
 
-idx1 = [0,0,1,1,2,2,3]
-idx2 = [0,1,0,1,0,1,0]
+idx1 = [0,0,1,1,2,2]
+idx2 = [0,1,0,1,0,1]
 
 #Cutoff where it becomes incomplete
-#TODO: apply these as well to the residual plot
-idx_cutoff=[0,0,0,1,1,2,3]
-idx_cutoff_PS = [0,0,0,0,0,0,0] #last one 2
+idx_cutoff=[0,0,2,2,1]
+idx_cutoff_PS = [0,0,0,1,0]
 
-bin_size = [0.5,0.25,0.4,0.35,0.35, 0.3, 0.3]
-bin_size_PS = [0.9,0.7,0.75,1,0.5, 0.6, 0.55]
+bin_size = [0.35,0.25,0.15,0.35,0.35]
+bin_size_PS = [0.9,0.45,0.3,0.6,0.6]
+
 
 
 '''Importing literature LFs'''
-# Heckman & Best 2014 lum function fit, 1400MHz
+# Heckman & Best 2014 lum function fit
 y_max = 27.
 P = 10**(np.linspace(19,y_max+2,1000))
 P_0_14 = 10**(24.95)
-P_0 = P_0_14 #* (1400/1400)**alpha_extrap
+alpha_extrap = -0.7
+
+P_0 = P_0_14 #* (144/1400)**alpha_extrap
 a = 0.42
 b = 1.66
 rho_0 = 10**(-5.33)
 rho = rho_0/( (P/P_0)**a + (P/P_0)**b) 
 
 #Best & Heckman 2012 local lum function z<0.3
+#TODO: plot star forming and AGN
 log_L_min=np.array([22,22.3,22.6,22.9,23.2,23.5,23.8,24.1,24.4,24.7,25,25.3,25.6,25.9,26.2])
 log_L_max = np.array([22.3,22.6,22.9,23.2,23.5,23.8,24.1,24.4,24.7,25,25.3,25.6,25.9,26.2, 26.5])
 log_L_central = (log_L_min + log_L_max)/2
@@ -108,59 +111,45 @@ starforming_err = [[0.03,0.03,0.02,0.03, 0.03,0.04,0.06,0.11,0.23,0,0,0,0,0,0],\
 AGN_all = [-4.44,-4.45,-4.45,-4.48,-4.69,-4.8,-4.91,-5.09,-5.26,-5.54,-5.82,-6.32,-6.58,-7.18,-7.78]
 AGN_all_err = [[0.15,0.05,0.04,0.02,0.02,0.01,0.02,0.01,0.02,0.02,0.03,0.05,0.07,0.12,0.21],[0.23,0.05,0.04,0.03,0.02,0.01,0.02,0.02,0.02,0.02,0.03,0.06,0.08,0.17,0.18]]
 
-# Pracy lum function at 1400
-#TODO: should we add these? 
+# Pracy lum function
 C_SF = 10**(-2.83)
 P_0_SF = 10**(21.18)
-P_0_SF = P_0_SF #* (1400/1400)**alpha_extrap
+P_0_SF = P_0_SF * (144/1400)**alpha_extrap
 a_SF = 1.02
 b_SF = 0.60  
 rho_SF = C_SF*((P/P_0_SF)**(1-a_SF) * np.exp(-0.5*(np.log10(1+P/P_0_SF)/b_SF)**2))
 
-#Ceraj
-Lum_AGN_01_05 = [21.82,22.62,23.42,24.22,25.02,25.82]
-phi_AGN_01_05 = [-3.99,-4.09,-4.74,-5.08,-5.50,-5.68]
-err_phi_AGN_01_05 = [0.15,0.04,0.06,0.10,0.22,0.30]
+# Williams 2018:
+log_P_williams = np.arange(24.25,28.25,0.5)
+z_05_1 = [-3.86,-4.71,-5.22,-5.71,-6.02,-6.29,-6.84,0.]
+z_05_1_err = [[0.05,0.04,0.06,0.11,0.16,0.17,0.38,0.],[0.05,0.03,0.06,0.10,0.14,0.20,0.38,0.]]
+z_1_15 = [0,-4.15,-5.23,-5.71,-6.09,-6.50,-6.87,-7.04]
+z_1_15_err = [[0.,0.11,0.05,0.10,0.13,0.21,0.27,0.49],[0.,0.11,0.05,0.09,0.13,0.18,0.37,0.49]]
+z_15_2 = [0,0,-5.04,-5.78,-6.21,-6.72,-7.42,-7.42]
+z_15_2_err = [[0.,0.,0.10,0.10,0.14,0.26,0.70,0.69],[0.,0.,0.09,0.09,0.15,0.26,0.55,0.54]]
 
-Lum_AGN_05_07 = [22.62,23.42,24.22,25.02]
-phi_AGN_05_07 = [-4.07,-4.45,-4.88,-5.81]
-err_phi_AGN_05_07 = [0.11,0.05,0.06,0.30]
+#TODO: rescale to 1400?
+#Kondapally 2022
+# LF_Konda_05_1 = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/Konda_LF/LF_radio_excess_AGN_0.7_z_1.0_tab.csv', delimiter=',', skiprows = 1, usecols = (0,1,2,3))
+# LF_Konda_1_15 = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/Konda_LF/LF_radio_excess_AGN_1.3_z_1.7_tab.csv', delimiter=',', skiprows = 1, usecols = (0,1,2,3))
+# LF_Konda_15_2 = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/Konda_LF/LF_radio_excess_AGN_1.7_z_2.1_tab.csv', delimiter=',', skiprows = 1, usecols = (0,1,2,3))
+# LF_Konda_2_25 = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/Konda_LF/LF_LERG_AGN_2_z_2.5_tab_quies.csv', delimiter=',', skiprows = 1, usecols = (0,1,2,3))
 
-Lum_AGN_07_09 = [22.96,23.76,24.56,25.36,26.16]
-phi_AGN_07_09 = [-4.61,-4.93,-5.41,-6.26,-6.26]
-err_phi_AGN_7_09 = [0.09,0.07,0.11,0.53,0.53]
 
-Lum_AGN_07_09 = [22.96,23.76,24.56,25.36,26.16]
-phi_AGN_07_09 = [-3.99,-4.35,-4.98,-5.66,-5.96]
-err_phi_AGN_07_09 = [0.11,0.09,0.06,0.17,0.3]
-
-Lum_AGN_09_11 = [23.21, 24.01, 24.81, 25.61, 26.41, 27.21]
-phi_AGN_09_11 = [-4.25,-4.66,-5.35,-5.58,-6.06,-6.36]
-err_phi_AGN_09_11 = [0.13,0.06,0.08,0.12,0.3,0.53]
-
-Lum_AGN_11_14 = [23.42,24.22,25.02,25.82,26.62]
-phi_AGN_11_14 = [-4.51,-4.78,-5.49,-5.91,-6.13]
-err_phi_AGN_11_14 = [0.05,0.04,0.07,0.14,0.22]
-
-Lum_AGN_17_21 = [23.85,24.65,25.45, 26.25]
-phi_AGN_17_21 = [-4.67,-4.90,-5.62,-6.25]
-err_phi_AGN_17_21 = [0.06,0.09,0.06, 0.16]
-
-fig, axs = plt.subplots(4, 2, figsize=(20,28), sharex = True, sharey = True)
+fig, axs = plt.subplots(3, 2, figsize=(20,23), sharex = True, sharey = True)
 plt.subplots_adjust(wspace=0, hspace=0)
-ax6 = axs[3, 1]
+ax6 = axs[2, 1]
 ax6.set_visible(False)
 
 fig2, ax1 = plt.subplots(figsize=(10,7.5))
 
 for index, z_bin_min in enumerate(redshift_bins[:-2]):
-
     hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/GPS_lum_func_1400.fits')
     tbdata = hdulist[1].data
     hdulist.close()
 
     alpha_low = tbdata['alpha_low']
-    alpha_high = tbdata['alpha_hiSh'] #for some reason there was a typo in the Vmax code. should be high
+    alpha_high = tbdata['alpha_hiSh']
     e_alpha_low = tbdata['e_alpha_low']
     e_alpha_high = tbdata['e_alpha_high']
     z_max_1400 = tbdata['z_max_1400']
@@ -178,16 +167,17 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     m_i = '21.3'
     
     # Calculate max volume of redshift range
-    if index < 7:
+    if index < 5:
         V_max_limit = calc_volume(redshift_bins[index+1]) * frac_area_VLASS
-    elif index == 7:
+    elif index == 5:
         V_max_limit = calc_volume(3.) * frac_area_VLASS # for full z ranges, use z_max = 3
     
     # Define values for this redshift range
-    if index == 7:
+    if index == 5:
         #I believe this is only when plotting the entire thing function, so no redshift bins
         z_idx = np.where((z > 0.) & (z < 3.))
     elif index < len(redshift_bins) - 1:
+        #TODO: waar komt deze 23 vandaan
         z_idx = np.where((z > z_bin_min) & (z < redshift_bins[index+1]) & (np.log10(Power_1400) > 23.))
     else:
         break
@@ -208,7 +198,7 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     
     # Also take minimum z of range into account
     # 5 is redshift bin 0-3, 0 is redshift bin 0-0.1. 
-    if index > 0 and index < 7: # only when z_min != 0
+    if index > 0 and index < 5: # only when z_min != 0
         V_min = calc_volume(z_bin_min) * frac_area_VLASS
         V_i = V_max_1400_z - V_min
         V_idx = np.where(V_i > 0)
@@ -232,20 +222,20 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     z_max_1400_PS = z_max_1400_z[ind_peaked]
     V_i_PS = V_i[ind_peaked]
 
-    # Define luminosity luminosity bins for 1400MHz, use SDSS limits
+    # Define luminosity luminosity bins for 144MHz, use SDSS limits
     bin_size_i = bin_size[index]
-    if index == 0 or index == 7:
+    if index == 0 or index == 5:
         low_limit_1400 = 23 # don't use the lowest luminosities, incomplete there
     else:
         low_limit_1400 = np.min(log_Power_1400)
     factor = 1
-    if index in [1,7]:
+    if index in [1,5]:
         factor = 2
     bin_edges_1400 = np.hstack((np.arange(low_limit_1400, np.max(log_Power_1400)-factor*bin_size_i, bin_size_i),np.max(log_Power_1400)))
     n_1400, bin_edges_1400 = np.histogram(log_Power_1400, bins=bin_edges_1400)
     
     # Define luminosity bins PS sample
-    if index == 7:
+    if index == 5:
         bin_edges_1400_PS = np.arange(23.,29.4, bin_size_PS[index]) 
     else:
         bin_edges_1400_PS = np.arange(np.min(log_Power_1400[ind_peaked]), np.max(log_Power_1400[ind_peaked])+bin_size_PS[index], bin_size_PS[index]) 
@@ -279,7 +269,6 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
 
     ax = axs[idx1[index], idx2[index]]
 
-
     # Plot luminosity function
     ax.errorbar(central_bins_1400[idx_cutoff[index]:], log_lum_func_1400[idx_cutoff[index]:],\
                 xerr=log_xerr_1400[idx_cutoff[index]:], yerr = log_err_lum_func_1400[:,idx_cutoff[index]:], c = 'k', \
@@ -289,125 +278,127 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
                 marker = '^',  capthick = 2, markersize = 10, mfc = marker_face_PS, linestyle = 'none', label = 'GPS sample')#', $m_i\, <$'+ m_i)
     
 
-    ax.set_xlim(22.5,30)
-    ax.set_ylim((-12,-3.5))
+    ax.set_xlim(22.5,29)
+    ax.set_ylim((-11.1,-3.5))
     
     #Plot the Heckman&Best line
-    #TODO: should we plot this at low redshift?
-    ax.plot(np.log10(P), np.log10(rho), linewidth = 2, linestyle = '--', color = 'k', zorder = -10, label = 'Heckman & Best (2014)\nz ~ 0.1')    
-    # ax.plot(np.log10(P), np.log10(rho_SF), linewidth = 2, linestyle = '--', color = 'k', zorder = -10, label = 'Test')    
-
+    ax.plot(np.log10(P), np.log10(rho), linewidth = 2, linestyle = '--', color = 'k', zorder = -10, label = 'Heckman & Best (2014)\nz < 0.3')
+    
     ax.annotate(str(len(z_idx[0]))+' SDSS sources, ' + str(len(z_max_1400_PS)) + ' SDSS PS sources', xy = (23,-10.2), xycoords = 'data', fontsize = 15)
     ax.annotate(str(z_bin_min)+' < z <' + str(redshift_bins[index+1]), xy=(23,-9.8), xycoords = 'data', fontsize = 17)
 
     if idx1[index] == 0:                    
-        if idx1[index] == 0 or idx1[index] == 1: 
+        if idx1[index] == 0 or idx1[index] == 1:
             ax.tick_params(left = True, labelleft = True, right = True, bottom = True, labelbottom = False, top = True)
+        if idx2[index] == 0:
+            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best&Heckman (2012)[z=0-0.3]',\
+                       c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
+        if idx2[index] == 1:
+            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best&Heckman (2012)[z=0-0.3]',\
+                       c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
+    
             
-        if idx2[index] == 0: #z<0.1
-            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best&Heckman (2012)\n [z=0-0.3]',\
-                       c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
-        elif idx2[index] == 1: #0.1<z<0.3
-            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best&Heckman (2012)\n [z=0-0.3]',\
-                       c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
-
-
     if idx1[index] == 1:
-        if idx2[index] == 0: #0.3<z<0.5
+        if idx2[index] == 0:
             ax.set_ylabel(r'$\log_{10} ( \Phi$ / Mpc$^{-3}$ dex$^{-1}$ )')
-            ax.errorbar(Lum_AGN_01_05, phi_AGN_01_05, yerr=err_phi_AGN_01_05, marker = 's', label='AGN Ceraj (2018)',\
-                       c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
+            # ax.errorbar(log_P_williams, z_05_1, xerr=0.25, yerr = z_05_1_err, marker = 's', c = 'dodgerblue',\
+            #             markersize = 10, mfc='none', capthick = 2, linestyle='none')
+            # ax.errorbar(LF_Konda_05_1[:,0], LF_Konda_05_1[:,1], xerr=0.15, yerr = [LF_Konda_05_1[:,2],LF_Konda_05_1[:,3]], marker = 'D',\
+            #           c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
 
-        elif idx2[index] == 1: #0.5<z<0.7
-            ax.errorbar(Lum_AGN_05_07, phi_AGN_05_07, yerr=err_phi_AGN_05_07, marker = 's', label='AGN Ceraj (2018)',\
-                       c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
-
-    if idx1[index] == 2:
-        if idx2[index] == 0: #0.7<z<0.9
-            ax.errorbar(Lum_AGN_07_09, phi_AGN_07_09, yerr=err_phi_AGN_07_09, marker = 's', label='AGN Ceraj (2018)',\
-                       c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
-        elif idx2[index] == 1:   #0.9<z<1.4
-                ax.errorbar(Lum_AGN_11_14, phi_AGN_11_14, yerr=err_phi_AGN_11_14, marker = 's', label='AGN Ceraj (2018)',\
-                           c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')    
-
-    if idx1[index] == 3: #1.4<z<3
-        if idx2[index] == 0: #0.7<z<0.9
-            ax.errorbar(0, 0, yerr=1, marker = 'D', label='Best&Heckman (2012)\n all sources z < 0.3',\
-                       c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
-            ax.errorbar(Lum_AGN_17_21, phi_AGN_17_21, yerr=err_phi_AGN_17_21, marker = 's', label='AGN Ceraj (2018)',\
-                       c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
+        elif idx2[index] == 1:
+            # ax.errorbar(log_P_williams, z_1_15, xerr=0.25, yerr = z_1_15_err, marker = 's', c = 'dodgerblue',\
+            #             markersize = 10, mfc='none', capthick = 2, linestyle='none')
+            # ax.errorbar(LF_Konda_1_15[:,0], LF_Konda_1_15[:,1], xerr=0.15, yerr = [LF_Konda_1_15[:,2],LF_Konda_1_15[:,3]], marker = 'D',\
+            #           c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
             ax.set_xlabel(r'$\log_{10}$(L$_{1400 \, \mathrm{MHz}}$ / W Hz$^{-1}$)')
 
+    if idx1[index] == 2 and idx2[index] == 0:
+        # ax.errorbar(log_P_williams, z_15_2, xerr=0.25, yerr = z_15_2_err, marker = 's',c = 'dodgerblue',\
+        #             markersize = 10, capthick = 2, mfc='none', linestyle='none', label = 'Williams et al. (2018)\nSF + AGN')
+        # ax.errorbar(LF_Konda_15_2[:,0], LF_Konda_15_2[:,1], xerr=0.15, yerr = [LF_Konda_15_2[:,2],LF_Konda_15_2[:,3]], marker = 'D',\
+        #               c = 'forestgreen', markersize = 10, mfc='none', capthick = 2, linestyle='none', label = 'Kondapally et al. (2022)\nAGN')
+        ax.errorbar(0, 0, yerr=1, marker = 'D', label='Best&Heckman (2012)\n z < 0.3',\
+                   c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
+        ax.set_xlabel(r'$\log_{10}$(L$_{1400 \, \mathrm{MHz}}$ / W Hz$^{-1}$)')
         
     if idx2[index] == 1:
         ax.tick_params(left = True, labelleft = False, right = True, bottom = True, labelbottom = True, top = True)
 
-    if idx1[index] == 3 and idx2[index] == 0: 
-        ax.legend(bbox_to_anchor = (1.05,0.8), frameon = True, handletextpad = 1.5, labelspacing = 0.6)
+    if idx1[index] == 2 and idx2[index] == 0: 
+        ax.legend(bbox_to_anchor = (1.05,0.8),frameon = True, handletextpad = 1.5, labelspacing = 0.6)
 
     # ax.tick_params(left = True, right = True, bottom = True, labelbottom = False, top = True)
     ax.tick_params(axis='both',which='both',top=True,right=True)
 
 
-    if index != 8:
-        print('\n')
-        print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; HF Sample} &")
-        for i, LF in enumerate(log_lum_func_1400[idx_cutoff[index]:]):
-            print(np.round((central_bins_1400[idx_cutoff[index]:])[i],2), "$\pm$",\
-                  np.round((log_xerr_1400[idx_cutoff[index]:])[i],1), "&", (n_1400[idx_cutoff[index]:])[i], \
-                      "& $", np.round(LF,2), "^{+", np.round((log_err_lum_func_1400[:,idx_cutoff[index]:])[1,i],2)\
-                          , "}_{-", np.round((log_err_lum_func_1400[:,idx_cutoff[index]:])[0,i],2), "}$&")
+    # if index != 6:
+    #     print('\n')
+    #     print("\multicolumn{3}{c}{$z < " + str(redshift_bins[index])+"$; Master Sample} \ " + "\ ")
+    #     for i, LF in enumerate(log_lum_func_1400):
+    #         print(np.round(central_bins_144[i],2), "$\pm$", np.round(log_xerr_144[i],1), "&", n_144[i], "& $", np.round(LF,2), "^{+", np.round(log_err_lum_func_144[1,i],2), "}_{-", np.round(log_err_lum_func_144[0,i],2), "}$")
+
+    #     print('\n')
+    #     print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; PS Sample} \ " + "\ ")
+    #     for i, LF in enumerate(log_lum_func_144_PS):
+    #         print(np.round(central_bins_144_PS[i],2), "$\pm$", np.round(log_xerr_144_PS[i],1), "&", n_144_PS[i], "& $", np.round(LF,2), "^{+", np.round(log_err_lum_func_144_PS[1,i],2), "}_{-", np.round(log_err_lum_func_144_PS[0,i],2), "}$ \ " + "\ ")
 
 
-        print('\n')
-        print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; GPS Sample} \ " + "\ ")
-        for i, LF in enumerate(log_lum_func_1400_PS[idx_cutoff_PS[index]:]):
-            print(np.round((central_bins_1400_PS[idx_cutoff_PS[index]:])[i],2), \
-                  "$\pm$", np.round((log_xerr_1400_PS[idx_cutoff_PS[index]:])[i],1), \
-                      "&", (n_1400_PS[idx_cutoff_PS[index]:])[i], "& $", np.round(LF,2),\
-                          "^{+", np.round((log_err_lum_func_1400_PS[:,idx_cutoff_PS[index]:])[1,i],2),\
-                              "}_{-", np.round((log_err_lum_func_1400_PS[:,idx_cutoff_PS[index]:])[0,i],2), "}$ \ " + "\ ")
 
     # Plotting the residuals
     # Interpolate LF to get residuals from PS function
-    markers = ["s", "o", "^", "D", "v", "*", "s"]
-    colors = ['k', 'crimson', 'dodgerblue', 'darkorange', 'darkviolet', 'limegreen', 'deeppink']
-    if index != 7:
-        interp_LF = np.interp(central_bins_1400_PS[idx_cutoff_PS[index]:], central_bins_1400, log_lum_func_1400)
+    markers = ["s", "o", "^", "D", "v"]
+    colors = ['k', 'crimson', 'dodgerblue', 'darkorange', 'darkviolet']
+    if index != 5:
+        #I rescale them to 144MHz which should not make a big difference
+        
+        rescaled_central_bins_PS = central_bins_1400_PS[idx_cutoff_PS[index]:] * (144/1400)**(-0.7)
+        rescaled_central_bins_master = central_bins_1400 * (144/1400)**(-0.7)
+        interp_LF = np.interp(rescaled_central_bins_PS, rescaled_central_bins_master, log_lum_func_1400)
         resid = interp_LF - log_lum_func_1400_PS[idx_cutoff_PS[index]:]
         
         i_min_diff = []
+      
         for x_PS in (central_bins_1400_PS[idx_cutoff_PS[index]:]):
             i_min_diff.append(np.argmin(abs(x_PS - central_bins_1400)))
-            
+         
         log_err_x = log_err_lum_func_1400[:,i_min_diff]
         err_resid = np.sqrt(log_err_lum_func_1400_PS[:,idx_cutoff_PS[index]:]**2 + log_err_x**2)
-        
+    
         # print("difference between GPS & HF:", resid, '+/-', err_resid, "\n")
+        # print("\n")
+
+        err_resid_symm = np.sqrt( np.array(err_resid)[0,:] **2 + np.array(err_resid)[1,:] **2 ) # symmetric errors
+        resid_weights = 1 / (np.array(err_resid_symm) ** 2) #weights 
+        resid_mean = np.sum(resid * resid_weights) / np.sum(resid_weights) #weighted mean
+        uncertainty_in_mean = np.sqrt(1/np.sum(resid_weights))
+
+        print("{3}<z<{2} GPS {0:.4} \pm {1:.3}".format(resid_mean, uncertainty_in_mean,  str(redshift_bins[index+1]), str(redshift_bins[index])))
 
         # for i, r in enumerate(resid):
         #     print("& $", np.round(r,2), "^{+", np.round(err_resid[1,i],2), "}_{-", np.round(err_resid[0,i],2), "}$")
 
-
+        # if LF_name == 'SDSS':
         mfc_color = colors[index]
         legend_lab = str(z_bin_min)+'< z <' + str(redshift_bins[index+1])
         ax1.errorbar(central_bins_1400_PS[idx_cutoff_PS[index]:], resid, yerr = err_resid, linestyle = ':', marker = markers[index],\
                 mfc = mfc_color, c = colors[index], markersize = 9, label = legend_lab)     # else:
-        # print('\n')
-        # print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; PS Sample} \ " + "\ ")
-        # for i, LF in enumerate(log_lum_func_1400):
-        #     print(np.round(central_bins_1400[i],2), "$\pm$", np.round(log_xerr_1400[i],1), "&", lum_func_counts_1400[i], "& $", np.round(LF,2),\
-        #           "^{+", np.round(log_err_lum_func_1400[1,i],2), "}_{-", np.round(log_err_lum_func_1400[0,i],2), "}$")
+        # else:
+        #     print('\n')
+        #     print("\multicolumn{3}{c}{$z < " + str(redshift_bins[index])+"$; Master Sample} \ " + "\ ")
+        #     for i, LF in enumerate(log_lum_func_144):
+        #         print(np.round(central_bins_144[i],2), "$\pm$", np.round(log_xerr_144[i],1), "&", lum_func_counts_144[i], "& $", np.round(LF,2),\
+        #              "^{+", np.round(log_err_lum_func_144[1,i],2), "}_{-", np.round(log_err_lum_func_144[0,i],2), "}$")
 
-        # print('\n')
-        # print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; GPS Sample} \ " + "\ ")
+        #     print('\n')
+        #     print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; PS Sample} \ " + "\ ")
 
-        # for i, LF in enumerate(log_lum_func_1400_PS):
-        #     # for idx, r in enumerate(resid):
-        #     r = resid[i]
-        #     print(np.round(central_bins_1400_PS[i],2), "$\pm$", np.round(log_xerr_1400_PS[i],1), "&", bin_count_PS[i], "& $", np.round(LF,2),\
-        #             "^{+", np.round(log_err_lum_func_1400_PS[1,i],2), "}_{-", np.round(log_err_lum_func_1400_PS[0,i],2), "}$ & $", np.round(r,2),\
-        #             "^{+", np.round(err_resid[1,i],2), "}_{-", np.round(err_resid[0,i],2), "}$ \ " + "\ ")
+        #     for i, LF in enumerate(log_lum_func_144_PS):
+        #         # for idx, r in enumerate(resid):
+        #         r = resid[i]
+        #         print(np.round(central_bins_144_PS[i],2), "$\pm$", np.round(log_xerr_144_PS[i],1), "&", bin_count_PS[i], "& $", np.round(LF,2),\
+        #                 "^{+", np.round(log_err_lum_func_144_PS[1,i],2), "}_{-", np.round(log_err_lum_func_144_PS[0,i],2), "}$ & $", np.round(r,2),\
+        #                 "^{+", np.round(err_resid[1,i],2), "}_{-", np.round(err_resid[0,i],2), "}$ \ " + "\ ")
 
 
 
@@ -419,19 +410,8 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
         ax1.tick_params(axis='both',which='both',top=True,right=True)
         ax1.set_xlim(22.5,29)
         ax1.set_ylim(-0.4,2.5)
-        ax1.legend(bbox_to_anchor=(0.9, 0.53))
+        ax1.legend()
     
-fig.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_lumfunc_revised.png')
-fig2.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_resid_lum_func_revised.png')
+# fig.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_lumfunc.png')
+# fig2.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_resid_lum_func.png')
 
-"""
-TODO:
-    fix labels plotting
-    Plot smolcic at the right redshift bins > need to add the last ones. 
-        Also, true they are already at 1.4? They look weird
-    plot Pracy at the right redshift bins
-    figure out what pracy line means
-    get rid of incomplete bins
-    right limits
-    
-"""

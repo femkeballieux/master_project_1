@@ -1,0 +1,27 @@
+order of executing code and what it does:
+
+code/Martje_data_selec_isolated.py selects isolated sources in LoTSS
+code/Martje_data_selec_resolved_sourcetype.py selects unresolved isolated sources in LoTSS
+code/crossmatch_LoTSS_NVSS.py crossmatches LoTSS to NVSS> we do this seperately because we needed it at some point
+code/official_crossmatch_radio_surveys.py crossmatches all radio surveys to eachother, and turns our master sample into a cleaned version. It also computes the spectral indices.
+This is all it takes to compute the master sample.
+
+Making the color-color plot: code/plot_color_color.py
+Making the survey sensitivities plot: code/Martje_plot_radio_survey_sensitivities.py
+Making individual SEDs: code/make_plot_singular.py
+
+there are some little scripts for making plots in my thesis, these are self-descrivtive
+
+Then on to the analysis:
+HERG/LERG: First do the crossmatching in topcat, as described there, to get mastersample + emission lines
+/net/vdesk/data2/bach1/ballieux/master_project_1/HERG_LERG/HERG_LERG_classifications.py does everything for this chapter
+
+Luminosity funcs: First get redshifts as described in optical_ass.py, then obtain SDSS photometry using optical_ass.py. 
+/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions has the v_max code seperately for the GPS and MPS sample, and the plotting luminosity functions code separately for the two.
+It also has a code for plotting lumfuncs for GPS sample in bins of the MPS sample. And there is code to do the ratio analysis. And a start to some code that compares the absolute luminosities for the two samples.
+
+sourcecounts: /net/vdesk/data2/bach1/ballieux/master_project_1/source_counts computes the sourcecounts
+
+
+
+/net/vdesk/data2/bach1/ballieux/master_project_1/VLASS_Aegean has a bunch of stuff you probably wont need, remnants of when we made our own VLASS catalog.

@@ -37,7 +37,7 @@ def crossmatching1():
               tmatchn join1=always matcher=sky multimode=pairs nin=2 params=6 \
         in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/crossmatch_NVSS_LoTSS.fits values1="RA DEC" \
         in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_VLASS_final_selection.fits values2="RA DEC" \
-        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_mega_master_intermediate_crossmatchtest_6.fits')
+        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASS.fits')
     
     print("crossmatching 1 done")
 
@@ -50,7 +50,7 @@ def crossmatching2():
     """
     os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
               tmatchn join1=always matcher=sky multimode=pairs nin=13 params=15 \
-        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_intermediate_crossmatchtest_6.fits values1="RA_1 DEC_1" \
+        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASS.fits values1="RA_1 DEC_1" \
         in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/TGSS.fits values2="RAJ2000 DEJ2000" \
         in3=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/VLSSr.fits values3="RAJ2000 DEJ2000" \
         in4=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLLS_new_names.fits values4="RA DEC"\
@@ -63,11 +63,11 @@ def crossmatching2():
         in11=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband//channel_4_source.fits values11="RA DEC"\
         in12=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_5_source.fits values12="RA DEC" \
         in13=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/WENSS.fits values13="_RAJ2000 _DEJ2000" \
-        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_6.fits')
+        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_dirty.fits')
     
     print("crossmatching 2 done")
-# crossmatching1()
-# crossmatching2()
+crossmatching1()
+crossmatching2()
 
 """
 We now have a crossmatched table, this needs to be cleaned, put in the same units,
@@ -75,10 +75,8 @@ and for some the errors need to be convoluted with a percentage of the flux.
 Below the spectral indices will be calculated as well 
 """
 
-#TODO: select only isolated LoLSS sources? we do something somewhere with LoLSS rms? See make_tab_PS
-
 #Load in the data
-hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_6.fits")
+hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_dirty.fits")
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 hdulist.close()
@@ -90,19 +88,16 @@ Name = tbdata['Source_Name_1'].rstrip()
 RA = tbdata['RA_1']
 DEC = tbdata['DEC_1']
 
-S_LoTSS, stat_e_S_LoTSS = np.array(tbdata['Total_flux_1'])/1000., np.array(tbdata['E_Total_flux_1'])/1000. # Jy
-e_S_LoTSS = np.sqrt(stat_e_S_LoTSS**2 + (0.1*S_LoTSS)**2) # Combine the statistical LoTSS error and overall error on LoTSS
+S_LoTSS= np.array(tbdata['Total_flux_1'])/1000.#Jy
+e_S_LoTSS = 0.1 * S_LoTSS # Combine the statistical LoTSS error and overall error on LoTSS
 
 #NVSS
 S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['S1_4'])/1000. # Jy
 S_NVSS, e_S_NVSS = np.where(np.isnan(S_NVSS), 0., S_NVSS), np.where(np.isnan(S_NVSS), 0., e_S_NVSS) #deal with any non-detections
 
 #VLASS
-S_VLASS, stat_e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., np.array(tbdata['E_Total_flux_2'])/1000. # Jy
-S_VLASS, stat_e_S_VLASS = np.where(np.isnan(S_VLASS), 0., S_VLASS), np.where(np.isnan(S_VLASS), 0., stat_e_S_VLASS) #deal with any non-detections
-
-#propagate the error with 15 percent
-e_S_VLASS= np.sqrt(stat_e_S_VLASS**2 + (0.10 * S_VLASS)**2)
+S_VLASS, e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., 0.1 * np.array(tbdata['Total_flux_2'])/1000. # Jy
+S_VLASS, e_S_VLASS = np.where(np.isnan(S_VLASS), 0., S_VLASS), np.where(np.isnan(S_VLASS), 0., e_S_VLASS) #deal with non-detections
 
 
 
@@ -425,7 +420,7 @@ for i in tqdm(range(np.shape(flux_high2[1])[0])):
         norm_high2[i]=poptpowlaw_high2[0]
 
         # Calculate uncertainty on alpha_high, by looking at the boundary cases, plus and minus 1 sigma
-        # find min and max lotss flux, min and max nvss flux
+        # find min and max NVSS flux, min and max VLASS flux
         NVSS_min = flux2[1,i] - flux_err2[1,i]
         NVSS_max = flux2[1,i] + flux_err2[1,i]
         VLASS_min = flux2[2,i] - flux_err2[2,i]
@@ -436,13 +431,11 @@ for i in tqdm(range(np.shape(flux_high2[1])[0])):
         popt_err_high_l2, pcov_err_high_l2 = opt.curve_fit(gpscssmodels.powlaw, [1400., 3000.], [NVSS_min, VLASS_max], p0 = p0pow2, maxfev = 10000)
         popt_err_high_up2, pcov_err_high_up2 = opt.curve_fit(gpscssmodels.powlaw, [1400., 3000.], [NVSS_max, VLASS_min], p0 = p0pow2, maxfev = 10000)
 
-
-            
         alpha_err_high_b2[i] = [alpha_high2[i] - popt_err_high_l2[1], popt_err_high_up2[1] - alpha_high2[i]]
         alpha_err_high2[i] = np.abs(np.median(alpha_err_high_b2[i]))
         
     # Fit LoTSS to NVSS
-    if spectral_index_eval_norms(freq_low2,flux_low2[:,i],flux_err_low2[:,i]) == 'Curve_fit could not fit powerlaw.':
+    if spectral_index_eval_norms(freq_low2, flux_low2[:,i], flux_err_low2[:,i]) == 'Curve_fit could not fit powerlaw.':
         print('Could not fit low powerlaw to '+ Name_source2[i])
         continue
     else:
@@ -608,5 +601,5 @@ tbhdu = fits.BinTableHDU.from_columns(cols)
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  
 
-#TODO: terugzetten filenames overal
-tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_clean_6.fits', overwrite = True)
+
+tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_clean.fits', overwrite = True)

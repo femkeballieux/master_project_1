@@ -27,7 +27,8 @@ def L_z(z, alpha, flux_lim):
 def z_max_radio(alpha, Power, flux_lim):
     # Calculate the maximum redshift at which a source can be detected
     z_max = np.zeros(np.shape(Power))
-    z_range = np.arange(z_step,25,z_step)
+    z_range = np.arange(z_step,20,z_step)
+    z_range_bigger = np.arange(z_step,150,z_step)
 
     for index, L_source in enumerate(tqdm(Power)):
         alpha_source = alpha[index]
@@ -39,10 +40,17 @@ def z_max_radio(alpha, Power, flux_lim):
         L_max_ind = np.where((L > L_source))
 
         try:
+            #TODO: check of dit nog nodig is
             z_max[index] = np.min(z_range[L_max_ind])
         except:
-            print(index)
-            print(alpha_source)
+            print('Trying with larger z_max')
+            L_bigger = L_z(z_range_bigger, alpha_source, flux_lim)
+            L_max_ind_bigger = np.where((L_bigger > L_source))
+            try:
+                z_max[index] = np.min(z_range_bigger[L_max_ind_bigger])
+                print('Went right')
+            except:
+                print('Still nope')
     return z_max
 
 
@@ -123,17 +131,16 @@ cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27)
 z_step = 0.0001
 
 #Import the data with SDSS photometry and redshifts
-hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_sample_redshift_SDSS.fits')
+hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_redshift_SDSS.fits')
 tbdata = hdulist[1].data
 hdulist.close()
-
 
 z = tbdata['z_best']
 
 #We only us sources in our HF sample (LoLSS flux) that have redshift available
 ind_HF = np.where((z>0.)&(tbdata['VLASS_flux']>0.))
 
-name = tbdata['LoTSS_name_1'][ind_HF]
+name = tbdata['LoTSS_name'][ind_HF]
 alpha_low = tbdata['alpha_low_VLASS'][ind_HF]
 e_alpha_low = tbdata['e_alpha_low_VLASS'][ind_HF]
 alpha_high = tbdata['alpha_high_VLASS'][ind_HF]
@@ -152,27 +159,21 @@ dl = cosmo.luminosity_distance(z) # in Mpc
 # Do the k-correction
 k_corr = np.power((1 + z),-(1+alpha_high))
 
-#we rescale the NVSS flux to LoTSS using the median of alpha low
-S_1400_rescaled = S_1400 * (144/1400)*(-0.61)
-
-# Compute power at 144MHz to check what happens without extrapolating
-Power_144 = (4*np.pi*pow(dl,2)*S_1400_rescaled * k_corr).to(u.m**2) * (10**-26)
+# Compute power at 1400MHz to check what happens without extrapolating
+Power_1400 = (4*np.pi*pow(dl,2) * S_1400 * k_corr).to(u.m**2) * (10**-26)
 
 # Remove sources with nan or 0 values, and redshifts > 3
-Power_144_ind = np.where((np.isfinite(Power_144) & (Power_144 != 0) & (z < 3.)\
+Power_1400_ind = np.where((np.isfinite(Power_1400) & (Power_1400 != 0) & (z < 3.)\
                           & (i_mag > 0.) & (r_mag > 0.) & (g_mag > 0.)))
     
-Power_144 = Power_144[Power_144_ind].value
-z_144 = z[Power_144_ind]
-alpha_low_144, alpha_high_144 = alpha_low[Power_144_ind], alpha_high[Power_144_ind]
-e_alpha_low_144, e_alpha_high_144 = e_alpha_low[Power_144_ind], e_alpha_high[Power_144_ind]
-i_mag, g_mag, r_mag = i_mag[Power_144_ind], g_mag[Power_144_ind], r_mag[Power_144_ind]
+Power_1400 = Power_1400[Power_1400_ind].value
+z_1400 = z[Power_1400_ind]
+alpha_low_1400, alpha_high_1400 = alpha_low[Power_1400_ind], alpha_high[Power_1400_ind]
+e_alpha_low_1400, e_alpha_high_1400 = e_alpha_low[Power_1400_ind], e_alpha_high[Power_1400_ind]
+i_mag, g_mag, r_mag = i_mag[Power_1400_ind], g_mag[Power_1400_ind], r_mag[Power_1400_ind]
 
-# Use flux density limit at 144MHz & 5GHz from the extrapolated LoLSS flux density limit
-# Rescaled from 95%NVSS limit at 3.24mJy with alpha_low=0.34... as found from 95% limit to alpha_low, see color-color code
-
-alpha_low_95 = 0.3473123610019684
-flux_lim_144 = (3.24/1000) * (144/1400) ** (alpha_low_95)
+#This is the limit in janskys for NVSS
+flux_lim_1400 = (3.24/1000)
 
 #TODO: is this still up to date with out DR?
 mag_lim_i = 21.3
@@ -181,52 +182,52 @@ mag_lim_i = 21.3
 # Calculate absolute i_band magnitude for all sources
 g_i = g_mag - i_mag
 g_r = g_mag - r_mag
-i_MAG = i_MAG_z(z_144, i_mag, g_i)
-#r_MAG = i_MAG_z(z_144, r_mag, g_r)
+i_MAG = i_MAG_z(z_1400, i_mag, g_i)
+#r_MAG = i_MAG_z(z_1400, r_mag, g_r)
 
 # Calculate maximum redshift at which a source can be detected
+z_max_1400 = z_max_radio(alpha_high_1400, Power_1400, flux_lim_1400)
 z_max_opt = z_max_opt(mag_lim_i, i_MAG, g_i)
-z_max_144 = z_max_radio(alpha_high_144, Power_144, flux_lim_144)
 
-
-# define PS sample, which will have a different limit
-ind_peaked = np.where((alpha_low_144 > e_alpha_low_144)\
-                & (alpha_high_144 < - e_alpha_high_144))
+# define PS sample
+# ind_peaked = np.where((alpha_low_1400 > e_alpha_low_1400)\
+#                 & (alpha_high_1400 < - e_alpha_high_1400))
 
 #We do not handle the PS sources in a different way than the normal sources
-# flux_lim_144_PS = 0.013 #Jy, extrapolated from 95% complete LoLSS at 11mJy, with alpha=0.18
-# z_max_144_PS = z_max_radio(alpha_high_144[ind_peaked], Power_144[ind_peaked], flux_lim_144_PS)
-# z_max_144[ind_peaked] = z_max_144_PS
+# flux_lim_1400_PS = 0.013 #Jy, extrapolated from 95% complete LoLSS at 11mJy, with alpha=0.18
+# z_max_1400_PS = z_max_radio(alpha_high_1400[ind_peaked], Power_1400[ind_peaked], flux_lim_1400_PS)
+# z_max_1400[ind_peaked] = z_max_1400_PS
 
 # Check how many sources have redshifts higher than z_max --> tells us if limit is too conservative
-wrong_z_144 = np.where((z_144 > z_max_144))
-print('at 144GHz, # sources with too high z:',np.count_nonzero(wrong_z_144), "out of", (len(z_144)))
+#TODO: NOPE, hier gaat iets goed mis. # sources with too high z: 31873 out of 31890
+wrong_z_1400 = np.where((z_1400 > z_max_1400))
+print('at 1400GHz, # sources with too high z:',np.count_nonzero(wrong_z_1400), "out of", (len(z_1400)))
 
 # Calculate corresponding V_max
-V_max_radio = calc_volume(z_max_144) # Mpc^3
+V_max_radio = calc_volume(z_max_1400) # Mpc^3
 V_max_opt = calc_volume(z_max_opt)
-# V_max_radio_PS = calc_volume(z_max_144_PS)
+# V_max_radio_PS = calc_volume(z_max_1400_PS)
 
 # Saving to a fits file
-col1  = fits.Column(name='LoTSS_name', format = '34A', array = name[Power_144_ind])
-col2  = fits.Column(name='RA', format = 'E', array = tbdata['RA'][ind_HF][Power_144_ind])
-col3  = fits.Column(name='Dec', format = 'E', array = tbdata['DEC'][ind_HF][Power_144_ind])
-col4  = fits.Column(name='alpha_low', format = 'E', array = alpha_low_144)
-col5  = fits.Column(name='alpha_high', format = 'E', array = alpha_high_144)
-col19  = fits.Column(name='e_alpha_low', format = 'E', array = e_alpha_low_144)
-col20  = fits.Column(name='e_alpha_high', format = 'E', array = e_alpha_high_144)
-col6 = fits.Column(name='LoTSS_flux', format = 'E', array = S_144[Power_144_ind])
-col7 = fits.Column(name='e_LoTSS_flux', format = 'E', array = tbdata['e_LoTSS_flux'][ind_HF][Power_144_ind])
-col8 = fits.Column(name='VLASS_flux', format = 'E', array = tbdata['VLASS_flux'][ind_HF][Power_144_ind])
-col9 = fits.Column(name='e_VLASS_flux', format = 'E', array = tbdata['e_VLASS_flux'][ind_HF][Power_144_ind])
-col10 = fits.Column(name='NVSS_flux', format = 'E', array = S_1400[Power_144_ind])
-col11 = fits.Column(name='e_NVSS_flux', format = 'E', array = tbdata['e_NVSS_flux'][ind_HF][Power_144_ind])
-col12 = fits.Column(name='z_reported', format = 'E', array = z_144)
-# col13 = fits.Column(name='norm_high', format = 'E', array = norm_high[Power_144_ind])
-col14 = fits.Column(name='z_max_144', format = 'F20', array = z_max_144)
+col1  = fits.Column(name='LoTSS_name', format = '34A', array = name[Power_1400_ind])
+col2  = fits.Column(name='RA', format = 'E', array = tbdata['RA'][ind_HF][Power_1400_ind])
+col3  = fits.Column(name='Dec', format = 'E', array = tbdata['DEC'][ind_HF][Power_1400_ind])
+col4  = fits.Column(name='alpha_low', format = 'E', array = alpha_low_1400)
+col5  = fits.Column(name='alpha_high', format = 'E', array = alpha_high_1400)
+col19  = fits.Column(name='e_alpha_low', format = 'E', array = e_alpha_low_1400)
+col20  = fits.Column(name='e_alpha_high', format = 'E', array = e_alpha_high_1400)
+col6 = fits.Column(name='LoTSS_flux', format = 'E', array = S_144[Power_1400_ind])
+col7 = fits.Column(name='e_LoTSS_flux', format = 'E', array = tbdata['e_LoTSS_flux'][ind_HF][Power_1400_ind])
+col8 = fits.Column(name='VLASS_flux', format = 'E', array = tbdata['VLASS_flux'][ind_HF][Power_1400_ind])
+col9 = fits.Column(name='e_VLASS_flux', format = 'E', array = tbdata['e_VLASS_flux'][ind_HF][Power_1400_ind])
+col10 = fits.Column(name='NVSS_flux', format = 'E', array = S_1400[Power_1400_ind])
+col11 = fits.Column(name='e_NVSS_flux', format = 'E', array = tbdata['e_NVSS_flux'][ind_HF][Power_1400_ind])
+col12 = fits.Column(name='z_reported', format = 'E', array = z_1400)
+# col13 = fits.Column(name='norm_high', format = 'E', array = norm_high[Power_1400_ind])
+col14 = fits.Column(name='z_max_1400', format = 'F20', array = z_max_1400)
 col15 = fits.Column(name='V_max_radio', format = 'F20', array = V_max_radio)
-col16 = fits.Column(name='Power_144', format = 'F20', array = Power_144)
-# col17 = fits.Column(name='weights_144', format='F20', array = weights_144)
+col16 = fits.Column(name='Power_1400', format = 'F20', array = Power_1400)
+# col17 = fits.Column(name='weights_1400', format='F20', array = weights_1400)
 col18 = fits.Column(name='V_max_opt', format = 'F20', array = V_max_opt)
 
 cols = fits.ColDefs([col1, col2, col3, col4, col19, col5,col20, col6, col7, col8, col9, col10, col11, col12, col14, col15, col16, col18])
@@ -234,4 +235,4 @@ tbhdu = fits.BinTableHDU.from_columns(cols)
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  
 
-tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/MPS_lum_func.fits', overwrite = True)
+tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/GPS_lum_func_1400.fits', overwrite = True)

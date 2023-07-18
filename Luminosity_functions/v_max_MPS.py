@@ -28,6 +28,7 @@ def z_max_radio(alpha, Power, flux_lim):
     # Calculate the maximum redshift at which a source can be detected
     z_max = np.zeros(np.shape(Power))
     z_range = np.arange(z_step,25,z_step)
+    z_range_bigger = np.arange(z_step,100,z_step)
 
     for index, L_source in enumerate(tqdm(Power)):
         alpha_source = alpha[index]
@@ -41,8 +42,15 @@ def z_max_radio(alpha, Power, flux_lim):
         try:
             z_max[index] = np.min(z_range[L_max_ind])
         except:
-            print(index)
-            print(alpha_source)
+            print('')
+            print('Trying with larger z_max')
+            L_bigger = L_z(z_range_bigger, alpha_source, flux_lim)
+            L_max_ind_bigger = np.where((L_bigger > L_source))
+            try:
+                z_max[index] = np.min(z_range_bigger[L_max_ind_bigger])
+                print('Went right')
+            except:
+                print('Still nope')
     return z_max
 
 
@@ -119,11 +127,11 @@ def poisson_errors(lum_func, err_lum_func, lum_func_counts):
     return log_err_lum_func
 
 
-cosmo = FlatLambdaCDM(H0=70 * u.km / u.s / u.Mpc, Om0=0.27)
+cosmo = FlatLambdaCDM(H0 = 70 * u.km / u.s / u.Mpc, Om0=0.27)
 z_step = 0.0001
 
 #Import the data with SDSS photometry and redshifts
-hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_sample_redshift_SDSS.fits')
+hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_redshift_SDSS.fits')
 tbdata = hdulist[1].data
 hdulist.close()
 
@@ -131,9 +139,9 @@ hdulist.close()
 z = tbdata['z_best']
 
 #We only us sources in our LF sample (LoLSS flux) that have redshift available
-ind_LF = np.where((z>0.)&(tbdata['LoLSS_flux']>0.))
+ind_LF = np.where((z>0.) & (tbdata['LoLSS_flux']>0.))
 
-name = tbdata['LoTSS_name_1'][ind_LF]
+name = tbdata['LoTSS_name'][ind_LF]
 alpha_low = tbdata['alpha_low_LoLSS'][ind_LF]
 e_alpha_low = tbdata['e_alpha_low_LoLSS'][ind_LF]
 alpha_high = tbdata['alpha_high_LoLSS'][ind_LF]
@@ -171,6 +179,7 @@ i_mag, g_mag, r_mag = i_mag[Power_144_ind], g_mag[Power_144_ind], r_mag[Power_14
 
 alpha_low_95 = -1.0456912517547607
 flux_lim_144 = (11/1000) * (144/54) ** (alpha_low_95)
+print(flux_lim_144*1000)
 
 #TODO: is this still up to date with out DR?
 mag_lim_i = 21.3
@@ -183,8 +192,9 @@ i_MAG = i_MAG_z(z_144, i_mag, g_i)
 #r_MAG = i_MAG_z(z_144, r_mag, g_r)
 
 # Calculate maximum redshift at which a source can be detected
-z_max_opt = z_max_opt(mag_lim_i, i_MAG, g_i)
 z_max_144 = z_max_radio(alpha_high_144, Power_144, flux_lim_144)
+z_max_opt = z_max_opt(mag_lim_i, i_MAG, g_i)
+
 
 
 # define PS sample, which will have a different limit
