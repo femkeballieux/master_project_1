@@ -4,11 +4,12 @@ Code written by Femke Ballieux, takes in the master sample and crossmatches it w
 #run on laptop
 import os
 import astropy.units as u
-from astroquery.sdss import SDSS
+# from astroquery.sdss import SDSS
 from astropy import coordinates as coords
 from astropy.io import fits
 import time
 import numpy as np
+from mpl_toolkits.axes_grid1 import host_subplot
 import matplotlib.pyplot as plt
 
 """
@@ -120,22 +121,37 @@ def obtain_SDSS():
     
     tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/SDSS_sample.fits', overwrite = True)
     
-hdulist = fits.open(
-    '/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_redshift.fits')
+hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_redshift.fits')
 tbdata = hdulist[1].data
 hdulist.close()
     #Make the redshift distribution for PS sources in 2 samples
 z_best=tbdata['z_best']  
 PS_MPS = np.where((tbdata['alpha_low_LoLSS'] > tbdata['e_alpha_low_LoLSS'])
-                            & (tbdata['alpha_high_LoLSS'] < -tbdata['e_alpha_high_LoLSS']))    
+                            & (tbdata['alpha_high_LoLSS'] < 0))    
 PS_GPS = np.where((tbdata['alpha_low_VLASS'] > tbdata['e_alpha_low_VLASS'])
-                            & (tbdata['alpha_high_VLASS'] <= -tbdata['e_alpha_high_VLASS']))  
-plt.figure(figsize=(10,8))
-plt.hist(z_best[PS_MPS], bins=35, histtype='stepfilled', label='PS in MPS sample') 
-plt.hist(z_best[PS_GPS], bins=35, histtype='step', label='PS in GPS sample')
+                            & (tbdata['alpha_high_VLASS'] <= 0))  
+
+
+host = host_subplot(111)
+twin = host.twinx()
+
+# Plot the first histogram on the left y-axis
+plt.hist(z_best[PS_MPS], bins=35, histtype='step', label='MPS', color='black')
+
+plt.ylabel('Number of sources in MPS sample')
+
+
+# Plot the second histogram on the right y-axis
+twin.hist(z_best[PS_GPS], bins=35, histtype='step', label='GPS', color='red')
+
 plt.xlabel('z')
-plt.ylabel('Number of sources')   
-plt.legend()
+twin.set_ylabel('Number of sources in GPS sample')
+
+# Add legend for both histograms
+plt.legend(['MPS', 'GPS'], loc='upper right', fontsize=14)
+
+host.yaxis.get_label().set_color('red')
+
 plt.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/redshift_dist.pdf')
 
 print('MPS number of sources with redshift', len(z_best[PS_MPS]))

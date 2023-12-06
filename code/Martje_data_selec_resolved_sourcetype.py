@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.table import Table
 
-filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/isolated_test.fits"
+filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/isolated_45.fits"
 
 # Read out fits files from data directory, place data and header in Astropy table
 survey = fits.open(filepath)
@@ -47,4 +47,4 @@ print(np.round(100*len(complex_source[0])/len(peak_flux),2), '% of sources (', l
 
 #Now we have all good sources from LoTTS DR2
 data.remove_rows(complex_source[0])
-data.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/unresolved_isolated_S_source.fits', format='fits', overwrite = True)
+data.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/unresolved_isolated_S_source_45.fits', format='fits', overwrite = True)

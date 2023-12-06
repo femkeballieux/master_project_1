@@ -10,7 +10,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from scipy.stats import iqr
 import scipy.stats as st
 
-plt.style.use('style.mplstyle')
+# plt.style.use('style.mplstyle')
 
 # Load in the table
 hdulist = fits.open(
@@ -23,7 +23,7 @@ hdulist.close()
 
 flux_sample = tbdata[sample + '_flux']
 
-
+contours = True
 
 def hist_norm_height(n, bins, const):
     ''' Function to normalise bin height by a constant. 
@@ -56,7 +56,10 @@ err_alpha_high = np.median(tbdata['e_alpha_high_'+sample][source_bright_ind])
 print('err alpha_low:', err_alpha_low, 'err alpha_high:', err_alpha_high)
 
 # plt.clf()
-fig = plt.figure(0, figsize=(15, 15))
+if sample == 'LoLSS':
+    fig = plt.figure(0, figsize=(15, 11))
+if sample == 'VLASS':
+    fig = plt.figure(0, figsize=(15, 11))
 gs = plt.GridSpec(2, 2, wspace=0, hspace=0, width_ratios=[
                   7, 1], height_ratios=[1, 7])
 ax2 = plt.subplot(gs[0])  # top histo
@@ -64,10 +67,16 @@ ax1 = plt.subplot(gs[1:, -1])  # right histo
 ax = plt.subplot(gs[2])  # main
 
 # Limits of plot
-xmin = -2.5
-xmax = 3.
-ymin = -3.5
-ymax = 2.5
+if sample == 'LoLSS':
+    xmin = -2.5
+    xmax = 3.
+    ymin = -2.1
+    ymax = 1
+if sample == 'VLASS':
+    xmin = -2.5
+    xmax = 3.
+    ymin = -3.5
+    ymax = 2.5
 
 cmap = cm.get_cmap("Greys")
 cmap._init()
@@ -116,40 +125,40 @@ X, Y = X[:-1], Y[:-1]
 
 
 # ax.contourf(X1, Y1, H.T, [16,255], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
-if sample == 'VLASS':
-
-    contour = ax.contourf(X1, Y1, H.T, [149, 456, 1474, 2952], cmap=LinearSegmentedColormap.from_list(
+if contours == True:
+    if sample == 'VLASS':
+        contour = ax.contourf(X1, Y1, H.T, [ 134.,  416., 1349., 2800.], cmap=LinearSegmentedColormap.from_list(
+                "cmap", ([1] * 3, [1] * 3), N=2), antialiased=False)
+        
+    elif sample == 'LoLSS':
+        ax.contourf(X1, Y1, H.T, [17, 60, 168, 308], cmap=LinearSegmentedColormap.from_list(
             "cmap", ([1] * 3, [1] * 3), N=2), antialiased=False)
-
-elif sample == 'LoLSS':
-    ax.contourf(X1, Y1, H.T, [36, 125, 346, 608], cmap=LinearSegmentedColormap.from_list(
-        "cmap", ([1] * 3, [1] * 3), N=2), antialiased=False)
-#ax.contourf(X1, Y1, H.T, [15,75,145,265], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
-print('Use these values for contours', V[::-1])
-# [V[-1], H.max()]
-# if you don't want the grey scale beind, comment this line out.
-ax.pcolor(X, Y, H.max() - H.T, cmap=cmap, shading='auto', zorder=10)
-CS = ax.contour(X1, Y1, H.T, V[::-1], colors='k', linewidths=1.5)
-
-fake_cs_contour = ax.scatter(np.linspace(1000, H.max()), np.linspace(1000, H.max(
-)), c=np.linspace(0, H.max()), cmap=plt.cm.Greys)  # fake data to get the correct colourbar
+    # ax.contourf(X1, Y1, H.T, [34,122,337,587], cmap=LinearSegmentedColormap.from_list("cmap",([1] * 3,[1] * 3),N=2), antialiased=False)
+    print('Use these values for contours', V[::-1])
+    # [V[-1], H.max()]
+    # if you don't want the grey scale beind, comment this line out.
+    ax.pcolor(X, Y, H.max() - H.T, cmap=cmap, shading='auto', zorder=10)
+    CS = ax.contour(X1, Y1, H.T, V[::-1], colors='k', linewidths=1.5)
+    
+    fake_cs_contour = ax.scatter(np.linspace(1000, H.max()), np.linspace(1000, H.max(
+    )), c=np.linspace(0, H.max()), cmap=plt.cm.Greys)  # fake data to get the correct colourbar
 
 # adding axes for colourbar to put in the plot
-
-cax_contour = fig.add_axes([0.15, 0.73, 0.2, 0.02])
-if sample == 'VLASS':
-    cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
-                                orientation='horizontal', ticks=[0, 500, 1000, 1500, 2000, 2500, 3000, 3500],)
-    cbar_contour.ax.tick_params(size=4, labelsize=10)
-    # because you need to subtract the value from the max above, the tick labels are inverted.
-    cbar_contour.set_ticklabels([0, 500, 1000, 1500, 2000, 2500, 3000, 3500])
-else:
-    cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
-                                orientation='horizontal', ticks=[0, 100, 200, 300, 400, 500, 600])
-    cbar_contour.ax.tick_params(size=4, labelsize=10)
-    # because you need to subtract the value from the max above, the tick labels are inverted.
-    cbar_contour.set_ticklabels([0, 100, 200, 300, 400, 500, 600])
-cbar_contour.solids.set_rasterized(True)
+    
+    cax_contour = fig.add_axes([0.15, 0.73, 0.2, 0.02])
+    if sample == 'VLASS':
+        cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
+                                    orientation='horizontal', ticks=[0, 500, 1000, 1500, 2000, 2500, 3000, 3500],)
+        cbar_contour.ax.tick_params(size=4, labelsize=10)
+        # because you need to subtract the value from the max above, the tick labels are inverted.
+        cbar_contour.set_ticklabels([0, 500, 1000, 1500, 2000, 2500, 3000, 3500])
+    else:
+        cbar_contour = fig.colorbar(fake_cs_contour, cax=cax_contour,
+                                    orientation='horizontal', ticks=[0, 100, 200, 300, 400, 500, 600])
+        cbar_contour.ax.tick_params(size=4, labelsize=10)
+        # because you need to subtract the value from the max above, the tick labels are inverted.
+        cbar_contour.set_ticklabels([0, 100, 200, 300, 400, 500, 600])
+    cbar_contour.solids.set_rasterized(True)
 
 ax.set_xlabel(r'$\alpha_{\mathrm{low}}$', fontsize=25)
 ax.set_ylabel(r'$\alpha_{\mathrm{high}}$', fontsize=25)
@@ -175,7 +184,7 @@ x_limit = err_alpha_low
 y_limit = - err_alpha_high
 
 ax.vlines(x_limit, ymin, ymax, color='dodgerblue', zorder=10)
-ax.hlines(y_limit, xmin, xmax, color='dodgerblue', zorder=10)
+# ax.hlines(y_limit, xmin, xmax, color='dodgerblue', zorder=10)
 
 # GPS sel line
 #gps_x_sel = np.arange(-2.6,2.1,0.01)
@@ -189,35 +198,70 @@ ax.yaxis.set_ticks_position('both')
 
 # Plotting mock spectra
 
+if sample == 'LoLSS':
 
-    # PS Quarter
-x1_mock = np.linspace(1.4, 1.65)
-y1_mock = x1_mock - 4.55
-x2_mock = np.linspace(1.65, 1.9)
-y2_mock = -x1_mock - 1.5
-ax.plot(x1_mock, y1_mock, color='0.45')
-ax.plot(x2_mock, y2_mock, color='0.45')
+        # PS Quarter
+# Plotting mock spectra
 
-# Negative powerlaw
-x3_mock = np.linspace(-1.9, -1.65)
-y3_mock = y2_mock
-ax.plot(x3_mock, y3_mock, color='0.45')
+    x1_mock = np.linspace(2, 2.25)
+    y1_mock = x1_mock - 4
+    x2_mock = np.linspace(2.25, 2.5)
+    y2_mock = -x1_mock + 0.25
+    ax.plot(x1_mock, y1_mock, color='0.45')
+    ax.plot(x2_mock, y2_mock, color='0.45')
+    
+    # Negative powerlaw 
+    x3_mock = np.linspace(-2,-1.75)
+    y3_mock = y2_mock
+    ax.plot(x3_mock,y3_mock,color = '0.45')
+    
+    # Postive powerlaw 
+    x4_mock = np.linspace(2,2.25)
+    y4_mock = x4_mock + -1.55
+    ax.plot(x4_mock,y4_mock,color = '0.45')
+    
+    # Top left corner
+    x5_mock = np.linspace(-1.75,-1.5)
+    y5_mock = x5_mock + 2.15
+    x6_mock = np.linspace(-2,-1.75)
+    y6_mock = -x6_mock - 1.35
+    ax.plot(x5_mock,y5_mock,color = '0.45')
+    ax.plot(x6_mock,y6_mock,color = '0.45')
 
-# Postive powerlaw
-x4_mock = np.linspace(1.35, 1.6)
-y4_mock = x4_mock + +0.25
-ax.plot(x4_mock, y4_mock, color='0.45')
 
-# Top left corner
-x5_mock = np.linspace(-1.75, -1.5)
-y5_mock = x5_mock + 3.25
-x6_mock = np.linspace(-2, -1.75)
-y6_mock = -x6_mock - 0.25
-ax.plot(x5_mock, y5_mock, color='0.45')
-ax.plot(x6_mock, y6_mock, color='0.45')
+    (_, caps, _) = ax.errorbar(-2.15, -0.7, xerr=err_alpha_low,
+                            yerr=err_alpha_high, color='k', linestyle='none', elinewidth=2)
+    
+if sample == 'VLASS':
 
-(_, caps, _) = ax.errorbar(-2.15, .8, xerr=err_alpha_low,
-                           yerr=err_alpha_high, color='k', linestyle='none', elinewidth=2)
+        # PS Quarter
+    x1_mock = np.linspace(1.4, 1.65)
+    y1_mock = x1_mock - 4.55
+    x2_mock = np.linspace(1.65, 1.9)
+    y2_mock = -x1_mock - 1.5
+    ax.plot(x1_mock, y1_mock, color='0.45')
+    ax.plot(x2_mock, y2_mock, color='0.45')
+
+    # Negative powerlaw
+    x3_mock = np.linspace(-1.9, -1.65)
+    y3_mock = y2_mock
+    ax.plot(x3_mock, y3_mock, color='0.45')
+
+    # Postive powerlaw
+    x4_mock = np.linspace(1.35, 1.6)
+    y4_mock = x4_mock + +0.25
+    ax.plot(x4_mock, y4_mock, color='0.45')
+
+    # Top left corner
+    x5_mock = np.linspace(-1.75, -1.5)
+    y5_mock = x5_mock + 3.25
+    x6_mock = np.linspace(-2, -1.75)
+    y6_mock = -x6_mock - 0.25
+    ax.plot(x5_mock, y5_mock, color='0.45')
+    ax.plot(x6_mock, y6_mock, color='0.45')
+
+    (_, caps, _) = ax.errorbar(-2.15, .8, xerr=err_alpha_low,
+                            yerr=err_alpha_high, color='k', linestyle='none', elinewidth=2)
     
 
 
@@ -226,12 +270,16 @@ for cap in caps:
     cap.set_markeredgewidth(2)
 
 if sample == "VLASS":
+    # ind_peaked = np.where((alpha_low > (tbdata['e_alpha_low_'+sample][source_bright_ind]))
+    #                       & (alpha_high < - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
     ind_peaked = np.where((alpha_low > (tbdata['e_alpha_low_'+sample][source_bright_ind]))
-                          & (alpha_high < - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
+                          & (alpha_high < 0.))
 
 else:
+    # ind_peaked = np.where((alpha_low > (tbdata['e_alpha_low_'+sample][source_bright_ind]))
+    #                       & (alpha_high < - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
     ind_peaked = np.where((alpha_low > (tbdata['e_alpha_low_'+sample][source_bright_ind]))
-                          & (alpha_high < - (tbdata['e_alpha_high_'+sample][source_bright_ind])))
+                          & (alpha_high < 0))
     # ind_peaked = np.where((alpha_low >= 0.) & (alpha_high <= 0.0))
 perc_peaked_source = (np.shape(ind_peaked)[
                       1] / np.shape(source_bright_ind)[1]) * 100
@@ -286,7 +334,7 @@ ax.grid(True)
 
 #ax2.set_title(r'Color-color diagram $\alpha_{low}, \alpha_{high}$. Brightness limit of ' + str(brightness_limit) + 'Jy', fontsize = 30)
 plt.savefig(
-    '/net/vdesk/data2/bach1/ballieux/master_project_1/colour_colour_plots/official_colour_colour_'+sample+'_revised.png')
+    '/net/vdesk/data2/bach1/ballieux/master_project_1/colour_colour_plots/official_colour_colour_'+sample+'_revised_alpha_0.png', bbox_inches='tight', dpi=500)
 # plt.show()
 
 #Something with interquartile range

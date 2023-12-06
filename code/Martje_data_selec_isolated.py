@@ -11,7 +11,8 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from tqdm import tqdm
 
-filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoTSS_DR2.fits"
+# filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoTSS_DR2.fits"
+filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLSS_new.fits"
 
 # Read out LoTTS DR2 fits files from data directory, place data and header in Astropy table
 survey = fits.open(filepath, memmap=True)
@@ -29,7 +30,7 @@ RA = np.array(data['RA'])
 DEC = np.array(data['DEC'])
 
 # Find sources within 47''
-max_sep = 47 * u.arcsec # arcsec
+max_sep = 45 * u.arcsec # arcsec
 
 unisolated_index = []
 border = 2000
@@ -84,4 +85,5 @@ print('script takes', end - start, 'seconds to run')
 
 #Remove the LoTTS data that overlaps, rewrite everything else to a new file
 data.remove_rows(unisolated_index)
-data.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/isolated_test.fits', format='fits', overwrite = True)
+#Change filename between LoTSS and LoLSS
+data.write('/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_isolated_45.fits', format='fits', overwrite = True)

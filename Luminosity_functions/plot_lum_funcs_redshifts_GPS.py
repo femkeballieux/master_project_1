@@ -81,7 +81,7 @@ idx_cutoff=[0,0,0,1,1,2,3]
 idx_cutoff_PS = [0,0,0,0,0,0,0] #last one 2
 
 bin_size = [0.5,0.25,0.4,0.35,0.35, 0.3, 0.3]
-bin_size_PS = [0.9,0.7,0.75,1,0.5, 0.6, 0.55]
+bin_size_PS = [0.9,0.7,0.75,1,0.5, 0.6, 0.55] 
 
 
 '''Importing literature LFs'''
@@ -228,7 +228,9 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
 
     # define PS sample
     ind_peaked = np.where((alpha_low_z > e_alpha_low_z)\
-                          & (alpha_high_z < - e_alpha_high_z))
+                          & (alpha_high_z < 0))
+    # ind_peaked = np.where((alpha_low_z > e_alpha_low_z)\
+    #                       & (alpha_high_z < 0))
     z_max_1400_PS = z_max_1400_z[ind_peaked]
     V_i_PS = V_i[ind_peaked]
 
@@ -283,7 +285,7 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     # Plot luminosity function
     ax.errorbar(central_bins_1400[idx_cutoff[index]:], log_lum_func_1400[idx_cutoff[index]:],\
                 xerr=log_xerr_1400[idx_cutoff[index]:], yerr = log_err_lum_func_1400[:,idx_cutoff[index]:], c = 'k', \
-                marker = 'o', markersize = 10, linestyle ='none', mfc = marker_face, capthick = 2, label = 'HF Master Sample')#', $m_i\, <$'+ m_i)
+                marker = 'o', markersize = 10, linestyle ='none', mfc = marker_face, capthick = 2, label = 'HF sample')#', $m_i\, <$'+ m_i)
     ax.errorbar(central_bins_1400_PS[idx_cutoff_PS[index]:], log_lum_func_1400_PS[idx_cutoff_PS[index]:],\
                 xerr=log_xerr_1400_PS[idx_cutoff_PS[index]:], yerr = log_err_lum_func_1400_PS[:,idx_cutoff_PS[index]:], c = 'crimson',\
                 marker = '^',  capthick = 2, markersize = 10, mfc = marker_face_PS, linestyle = 'none', label = 'GPS sample')#', $m_i\, <$'+ m_i)
@@ -305,36 +307,36 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
             ax.tick_params(left = True, labelleft = True, right = True, bottom = True, labelbottom = False, top = True)
             
         if idx2[index] == 0: #z<0.1
-            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best&Heckman (2012)\n [z=0-0.3]',\
+            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best & Heckman (2012)\n [z=0-0.3]',\
                        c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
         elif idx2[index] == 1: #0.1<z<0.3
-            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best&Heckman (2012)\n [z=0-0.3]',\
+            ax.errorbar(log_L_central, all_radio, yerr=all_radio_err, marker = 'D', label='Best & Heckman (2012)\n [z=0-0.3]',\
                        c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
 
 
     if idx1[index] == 1:
         if idx2[index] == 0: #0.3<z<0.5
             ax.set_ylabel(r'$\log_{10} ( \Phi$ / Mpc$^{-3}$ dex$^{-1}$ )')
-            ax.errorbar(Lum_AGN_01_05, phi_AGN_01_05, yerr=err_phi_AGN_01_05, marker = 's', label='AGN Ceraj (2018)',\
+            ax.errorbar(Lum_AGN_01_05, phi_AGN_01_05, yerr=err_phi_AGN_01_05, marker = 's', label='AGN Ceraj et al. (2018)',\
                        c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
 
         elif idx2[index] == 1: #0.5<z<0.7
-            ax.errorbar(Lum_AGN_05_07, phi_AGN_05_07, yerr=err_phi_AGN_05_07, marker = 's', label='AGN Ceraj (2018)',\
+            ax.errorbar(Lum_AGN_05_07, phi_AGN_05_07, yerr=err_phi_AGN_05_07, marker = 's', label='AGN Ceraj et al. (2018)',\
                        c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
 
     if idx1[index] == 2:
         if idx2[index] == 0: #0.7<z<0.9
-            ax.errorbar(Lum_AGN_07_09, phi_AGN_07_09, yerr=err_phi_AGN_07_09, marker = 's', label='AGN Ceraj (2018)',\
+            ax.errorbar(Lum_AGN_07_09, phi_AGN_07_09, yerr=err_phi_AGN_07_09, marker = 's', label='AGN Ceraj et al. (2018)',\
                        c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
         elif idx2[index] == 1:   #0.9<z<1.4
-                ax.errorbar(Lum_AGN_11_14, phi_AGN_11_14, yerr=err_phi_AGN_11_14, marker = 's', label='AGN Ceraj (2018)',\
+                ax.errorbar(Lum_AGN_11_14, phi_AGN_11_14, yerr=err_phi_AGN_11_14, marker = 's', label='AGN Ceraj et al. (2018)',\
                            c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')    
 
     if idx1[index] == 3: #1.4<z<3
         if idx2[index] == 0: #0.7<z<0.9
-            ax.errorbar(0, 0, yerr=1, marker = 'D', label='Best&Heckman (2012)\n all sources z < 0.3',\
+            ax.errorbar(0, 0, yerr=1, marker = 'D', label='Best & Heckman (2012)\nz < 0.3',\
                        c = 'forestgreen', mfc='none', markersize = 10, capthick = 2, linestyle='none')
-            ax.errorbar(Lum_AGN_17_21, phi_AGN_17_21, yerr=err_phi_AGN_17_21, marker = 's', label='AGN Ceraj (2018)',\
+            ax.errorbar(Lum_AGN_17_21, phi_AGN_17_21, yerr=err_phi_AGN_17_21, marker = 's', label='AGN Ceraj et al. (2018)',\
                        c = 'deeppink', mfc='none', markersize = 10, capthick = 2, linestyle='none')
             ax.set_xlabel(r'$\log_{10}$(L$_{1400 \, \mathrm{MHz}}$ / W Hz$^{-1}$)')
 
@@ -421,17 +423,5 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
         ax1.set_ylim(-0.4,2.5)
         ax1.legend(bbox_to_anchor=(0.9, 0.53))
     
-fig.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_lumfunc_revised.png')
-fig2.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_resid_lum_func_revised.png')
-
-"""
-TODO:
-    fix labels plotting
-    Plot smolcic at the right redshift bins > need to add the last ones. 
-        Also, true they are already at 1.4? They look weird
-    plot Pracy at the right redshift bins
-    figure out what pracy line means
-    get rid of incomplete bins
-    right limits
-    
-"""
+fig.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_lumfunc_revised_alpha0.pdf')
+fig2.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/HF_resid_lum_func_revised_alpha0.pdf')

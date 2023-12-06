@@ -198,9 +198,10 @@ z_max_opt = z_max_opt(mag_lim_i, i_MAG, g_i)
 
 
 # define PS sample, which will have a different limit
+# ind_peaked = np.where((alpha_low_144 > e_alpha_low_144)\
+#                 & (alpha_high_144 < - e_alpha_high_144))
 ind_peaked = np.where((alpha_low_144 > e_alpha_low_144)\
-                & (alpha_high_144 < - e_alpha_high_144))
-
+                & (alpha_high_144 < 0))
 #We handle the PS sources in a different way than the normal sources
 flux_lim_144_PS = 0.013 #Jy, extrapolated from 95% complete LoLSS at 11mJy, with alpha=0.18
 z_max_144_PS = z_max_radio(alpha_high_144[ind_peaked], Power_144[ind_peaked], flux_lim_144_PS)
@@ -242,4 +243,4 @@ tbhdu = fits.BinTableHDU.from_columns(cols)
 print("#----------------------------------------------------------#")
 print('Saving to a fits file.')  
 
-tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/MPS_lum_func.fits', overwrite = True)
+tbhdu.writeto('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/MPS_lum_func_alpha0.fits', overwrite = True)

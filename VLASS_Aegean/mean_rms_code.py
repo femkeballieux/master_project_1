@@ -84,8 +84,8 @@ for axis in ['top','bottom','left','right']:
 ax.tick_params(axis='both',which='major',length=8,width=1.5)
 ax.hist(median_rms[median_rms>0.],bins=10000,histtype='step',lw=2,color='k')
 ax.axvline(np.median(median_rms[median_rms>0.]),color='crimson',lw=2,ls='--', \
-           label='median rms at {:.4} muJy'.format(np.median(median_rms[median_rms>0.])))
-ax.set_ylabel('Number', fontsize = 25)
+           label='Median of rms = {:.4} muJy'.format(np.median(median_rms[median_rms>0.])))
+ax.set_ylabel('Number of sources', fontsize = 25)
 ax.set_xlabel(r'Median RMS Noise ($\mu$Jy) ', fontsize = 25)
 ax.tick_params(axis='both',which='both',labelsize=17)
 ax.set_xlim([90, 350])
@@ -119,9 +119,9 @@ VLASS_limit = 0.0021 * ((3000/1400)**(alpha_mean))
 #A source is detected at 5 sigma, so a field is bad when the rms is higher than
 VLASS_rms_limit = (VLASS_limit / 5) *1e6 #muJy
 print('VLASS rms limit', VLASS_rms_limit)
-ax.axvline(VLASS_rms_limit,color='blue',lw=2,ls='--', label='High-noise limit at {:.4} muJy'.format(VLASS_rms_limit))
-ax.legend()
-plt.savefig('rms_analysis_histo.png',bbox_inches='tight')
+ax.axvline(VLASS_rms_limit,color='blue',lw=2,ls='--', label='High-noise limit = {:.4} muJy'.format(VLASS_rms_limit))
+ax.legend(fontsize=20)
+plt.savefig('rms_analysis_histo.pdf',bbox_inches='tight')
 #The amount of bad fields
 num_too_faint = len(median_rms[median_rms > VLASS_rms_limit])
 
@@ -129,81 +129,81 @@ num_too_faint = len(median_rms[median_rms > VLASS_rms_limit])
 print('We find {:.3} % Bad fields'.format(num_too_faint/len(median_rms[median_rms>0])*100))
 
 
-hdulist2 = fits.open(\
-   '/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_clean_6.fits')
+# hdulist2 = fits.open(\
+#    '/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_clean_6.fits')
 
-tbdata2 = hdulist2[1].data
-orig_cols2 = hdulist2[1].columns
-# print(orig_cols2)
-hdulist2.close()
+# tbdata2 = hdulist2[1].data
+# orig_cols2 = hdulist2[1].columns
+# # print(orig_cols2)
+# hdulist2.close()
 
 
-LoTSS_int=tbdata2['LoTSS_flux']
-LoTSS_int_err = tbdata2['e_LoTSS_flux']
-LoTSS_peak=tbdata2['LoTSS_flux_peak']
-e_LoTSS_peak=tbdata2['stat_e_LoTSS_flux_peak']
-# rms=tbdata['LoTSS_rms']
+# LoTSS_int=tbdata2['LoTSS_flux']
+# LoTSS_int_err = tbdata2['e_LoTSS_flux']
+# LoTSS_peak=tbdata2['LoTSS_flux_peak']
+# e_LoTSS_peak=tbdata2['stat_e_LoTSS_flux_peak']
+# # rms=tbdata['LoTSS_rms']
 
+
+# # ordered_median_rms = np.zeros(len(LoTSS_int))
+# # for i, rms in enumerate(indexes):
+# #     #i runs over the indexes of the unordered median_rms array. Clean_array runs over the ordered LoTSS array
+# #     dirty_index=(indexes[i]).split('_')[0]
+# #     clean_index=int(dirty_index[2:])
+# #     ordered_median_rms[clean_index] = median_rms[i] 
+ 
 
 # ordered_median_rms = np.zeros(len(LoTSS_int))
-# for i, rms in enumerate(indexes):
-#     #i runs over the indexes of the unordered median_rms array. Clean_array runs over the ordered LoTSS array
-#     dirty_index=(indexes[i]).split('_')[0]
-#     clean_index=int(dirty_index[2:])
-#     ordered_median_rms[clean_index] = median_rms[i] 
+# for i, LoTSS_index in enumerate(indexes_2):
+#     #We have already computed before that indexes_2 is the array of indexes 
+#     ordered_median_rms[LoTSS_index] = median_rms[i] 
  
 
-ordered_median_rms = np.zeros(len(LoTSS_int))
-for i, LoTSS_index in enumerate(indexes_2):
-    #We have already computed before that indexes_2 is the array of indexes 
-    ordered_median_rms[LoTSS_index] = median_rms[i] 
- 
+# # mask = np.where((ordered_median_rms<=500.))
+# mask = np.where((tbdata2['VLASS_flux']==0.)&(ordered_median_rms<=228.3)) 
+# #Since we only need those with missing VLASS flux, and we dont want to include those we can already explain by bad fields
 
-# mask = np.where((ordered_median_rms<=500.))
-mask = np.where((tbdata2['VLASS_flux']==0.)&(ordered_median_rms<=228.3)) 
-#Since we only need those with missing VLASS flux, and we dont want to include those we can already explain by bad fields
+# #There are a bunch of negative median-rms values. Check with Joe if this is weird
+# R=np.log(LoTSS_int/LoTSS_peak)
+# SNR=(LoTSS_int/LoTSS_int_err)
+# plt.figure(figsize=(10,8))
+# plt.semilogx()
 
-#There are a bunch of negative median-rms values. Check with Joe if this is weird
-R=np.log(LoTSS_int/LoTSS_peak)
-SNR=(LoTSS_int/LoTSS_int_err)
-plt.figure(figsize=(10,8))
-plt.semilogx()
+# #plt.scatter(SNR,R, alpha=1, s=1, label='all', color='crimson')
+# plt.scatter(SNR[mask],R[mask],c=ordered_median_rms[mask], alpha=1, s=0.8, label='missing VLASS')
+# plt.colorbar(label='VLASS rms in mJy')
 
-#plt.scatter(SNR,R, alpha=1, s=1, label='all', color='crimson')
-plt.scatter(SNR[mask],R[mask],c=ordered_median_rms[mask], alpha=1, s=0.8, label='missing VLASS')
-plt.colorbar(label='VLASS rms in mJy')
+# x_array=np.linspace(1,10000,1000)
 
-x_array=np.linspace(1,10000,1000)
-
-def R_99(SNR):
-    return 0.42 + (1.08 / (1+(SNR/96.57)**2.49))
-plt.plot(x_array, R_99(x_array), color='black', label='Shimwell')
-plt.legend()
-plt.xlim(1, 10000)
-plt.xlabel('SNR')
-plt.ylabel('$\ln(S_I/S_P)$')
+# def R_99(SNR):
+#     return 0.42 + (1.08 / (1+(SNR/96.57)**2.49))
+# plt.plot(x_array, R_99(x_array), color='black', label='Shimwell')
+# plt.legend()
+# plt.xlim(1, 10000)
+# plt.xlabel('SNR')
+# plt.ylabel('$\ln(S_I/S_P)$')
 
 
-hdulist3 = fits.open(\
-    '/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_intermediate_crossmatchtest_6.fits')
+# hdulist3 = fits.open(\
+#     '/net/vdesk/data2/bach1/ballieux/master_project_1/data/Official_VLASS_no_dups/official_mega_master_intermediate_crossmatchtest_6.fits')
 
-tbdata3 = hdulist3[1].data
-orig_cols3 = hdulist3[1].columns
-print(orig_cols3)
-hdulist3.close()
+# tbdata3 = hdulist3[1].data
+# orig_cols3 = hdulist3[1].columns
+# print(orig_cols3)
+# hdulist3.close()
 
 
-LoTSS_maj=tbdata3['Maj_1']
+# LoTSS_maj=tbdata3['Maj_1']
 
-plt.figure(figsize=(10,8))
-# plt.scatter(SNR[mask],LoTSS_maj[mask],c=ordered_median_rms[mask], alpha=1, s=0.8, label='missing VLASS')
-plt.scatter(SNR,LoTSS_maj,c=ordered_median_rms, alpha=1, s=0.8, label='missing VLASS')
-plt.colorbar(label='VLASS rms in mJy')
-plt.semilogx()
-plt.semilogy()
-plt.xlabel('SNR')
-plt.ylabel('LoTSS major axis')
-plt.hlines(6,0.5,5000, label='6 arcseconds')
+# plt.figure(figsize=(10,8))
+# # plt.scatter(SNR[mask],LoTSS_maj[mask],c=ordered_median_rms[mask], alpha=1, s=0.8, label='missing VLASS')
+# plt.scatter(SNR,LoTSS_maj,c=ordered_median_rms, alpha=1, s=0.8, label='missing VLASS')
+# plt.colorbar(label='VLASS rms in mJy')
+# plt.semilogx()
+# plt.semilogy()
+# plt.xlabel('SNR')
+# plt.ylabel('LoTSS major axis')
+# plt.hlines(6,0.5,5000, label='6 arcseconds')
 
 
 

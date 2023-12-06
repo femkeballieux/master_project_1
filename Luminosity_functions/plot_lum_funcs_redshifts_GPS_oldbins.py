@@ -218,7 +218,7 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
 
     # define PS sample
     ind_peaked = np.where((alpha_low_z > e_alpha_low_z)\
-                          & (alpha_high_z < - e_alpha_high_z))
+                          & (alpha_high_z < 0))
     z_max_1400_PS = z_max_1400_z[ind_peaked]
     V_i_PS = V_i[ind_peaked]
 

@@ -11,7 +11,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from tqdm import tqdm
 
-filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_VLASS_no_duplicates_not_isolated_S_or_M.fits"
+filepath = "/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_VLASS_no_duplicates_not_isolated.fits"
 
 # Read out LoTTS DR2 fits files from data directory, place data and header in Astropy table
 survey = fits.open(filepath, memmap=True)
@@ -29,7 +29,7 @@ RA = np.array(data['RA'])
 DEC = np.array(data['DEC'])
 
 # Find sources within 47''
-max_sep = 47 * u.arcsec # arcsec
+max_sep = 45 * u.arcsec # arcsec
 
 unisolated_index = []
 border = 2000

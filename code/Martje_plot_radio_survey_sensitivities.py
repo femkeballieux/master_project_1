@@ -10,7 +10,7 @@ from astropy.modeling import models, fitting
 import matplotlib.cm as cm
 import gpscssmodels
 
-plt.style.use('style.mplstyle')
+# plt.style.use('style.mplstyle')
 """
 for explanation on plot, see paper bu Martje, figure 1. Femkes adaptations:
     -I have added LoLSS DR1, by looking into the catalog and finding the lowest total fluxes reported
@@ -26,8 +26,8 @@ ax = plt.subplot(gs[0])
 #sens_survey_sing = np.array([0.38,2.,6.,11.0e-3,0.2,10.,1.,0.7,0.02,0.4,2.,4.,0.006,2.e-3,2.,0.025,0.03,0.04,0.052e-3,13.0e-3]) * 1000
 #survey_list = ['VLSSr','CCA','MSH','TGSS','7C','3C','CCA','4C','WENSS','TXS','MRC','PKS','SUMSS','NVSS','2Jy','87GB','PMN','AT20G','LoTSS', 'LoLSS']
 
-survey_list = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/data/flux_limits_radio_surveys.csv', dtype = 'str', delimiter=',', unpack=True, skiprows = 1, usecols = 0)
-freq_survey, flux_lim_survey = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/data/flux_limits_radio_surveys.csv', dtype = float, delimiter=',', unpack=True, skiprows = 1, usecols = [1,2])
+survey_list = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/data/flux_limits_radio_surveys_edited.csv', dtype = 'str', delimiter=',', unpack=True, skiprows = 1, usecols = 0)
+freq_survey, flux_lim_survey = np.loadtxt('/net/vdesk/data2/bach1/ballieux/master_project_1/data/flux_limits_radio_surveys_edited.csv', dtype = float, delimiter=',', unpack=True, skiprows = 1, usecols = [1,2])
 
 flux_lim_survey *= 1000
 
@@ -70,9 +70,9 @@ ax.set_yscale('log')
 ax.set_xlim([20,22000])
 ax.set_ylim([0.008,1200])
 
-ax.set_xlabel(r'Frequency (MHz)')
-ax.set_ylabel(r'Limiting Flux Density (mJy)')
+ax.set_xlabel(r'Frequency (MHz)', fontsize=14)
+ax.set_ylabel(r'Limiting Flux Density (mJy)',fontsize=14)
 ax.tick_params(axis='both',which='both',top=True,right=True)
 #plt.show()
 ax.legend(fontsize=14, loc='upper right')
-plt.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/survey_limits_new.png')
+plt.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/survey_limits_new.pdf', bbox_inches='tight')

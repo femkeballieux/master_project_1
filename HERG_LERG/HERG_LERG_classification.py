@@ -69,8 +69,8 @@ for PS in ['MPS', 'GPS']:
     e_alpha_high = tbdata['e_alpha_high_'+sample]
     
     mask_F = (e_alpha_low>0.)
-    mask_PS = ((alpha_low > e_alpha_low) & (alpha_high < -e_alpha_high))
-    
+    # mask_PS = ((alpha_low > e_alpha_low) & (alpha_high < -e_alpha_high))
+    mask_PS = ((alpha_low > e_alpha_low) & (alpha_high < 0))    
     #Masks for Bestman&Heck 2012 catalog
     Best_HERG_mask= (tbdata['H'] == 1)
     Best_LERG_mask= (tbdata['L'] == 1)
@@ -106,7 +106,7 @@ for PS in ['MPS', 'GPS']:
     #mThese sources have not been classified in Heckman&Best
     not_yet_classified_mask = ((classification != 1) & (classification!=2))
 
-                               
+                              
     #Read in the DR12 Portsmouth stuff
     H_alpha_flux_DR12 = tbdata['FLUX'][:,24]
     H_alpha_flux_err_DR12 = tbdata['FLUX_ERR'][:,24]
@@ -146,6 +146,9 @@ for PS in ['MPS', 'GPS']:
 
     print('For those that do not have a classification yet:')
     
+    
+    print(len(classification[np.where(EI_LERG_mask & non_zero_mask &  (classification==2))]), 'LERG EI, HERG Best')
+    print(len(classification[np.where(EI_HERG_mask & non_zero_mask &  (classification==1))]), 'HERG EI, LERG best')
     #If they have a detection in all lines and have not been classified yet then they might be HERG or LERG
     classification[np.where(EI_LERG_mask & non_zero_mask &  not_yet_classified_mask)] = 1 
     classification[np.where(EI_HERG_mask & non_zero_mask & not_yet_classified_mask)] = 2
@@ -174,6 +177,8 @@ for PS in ['MPS', 'GPS']:
     OIII_mask_dr12_HERG = (O_III_ew_DR12>5.) & (np.isfinite(O_III_ew_DR12))
     OIII_mask_dr12_LERG_unclassified = (O_III_ew_DR12<5.) & (np.isfinite(O_III_ew_DR12))
     
+    # print(len(classification[np.where(OIII_mask_dr12_HERG & mask_PS &(classification==1) & (classification_source==2))]), 'PS: HERG OII, LERG otherwise')
+    # print(len(classification[np.where(OIII_mask_dr12_HERG & mask_F &(classification==1) & (classification_source==2))]), 'F: HERG OII, LERG otherwise')
     
     classification[np.where(OIII_mask_dr12_HERG & not_yet_classified_mask_2)] = 2
     classification[np.where(in_DR12_mask & OIII_mask_dr12_LERG_unclassified & not_yet_classified_mask_2)] = 3  
@@ -185,6 +190,7 @@ for PS in ['MPS', 'GPS']:
     I = len(name[(classification==3) & mask_F & (classification_source==3)])
     print('Portsmouth OIII EW criterium: there are {0} HERGS an {1} unclassified or LERG in {2}'.\
           format(H, I, F))
+        
     h = len(name[(classification==2) & mask_PS & (classification_source==3)])
     i = len(name[(classification==3) & mask_PS & (classification_source==3)])
     print('Portsmouth OIII EW criterium: there are {0} HERGS an {1} unclassified or LERG in {2}'.\
@@ -202,28 +208,68 @@ for PS in ['MPS', 'GPS']:
     O_III_ew_DR8 = tbdata['OIII_5007_EQW']
     O_III_ew_err_DR8 = tbdata['OIII_5007_EQW_ERR']
     
-    # #I assume the units are angstrom in both
-    # OIII_mask_dr8_HERG = (O_III_ew_DR8>5.)
-    # OIII_mask_dr8_LERG_unclassified = (O_III_ew_DR8<5.)
-    
-    # classification[np.where(OIII_mask_dr8_HERG & not_yet_classified_mask_3)] = 2
-    # classification[np.where(OIII_mask_dr8_LERG_unclassified & not_yet_classified_mask_3)] = 3  
 
-    # classification_source[np.where(OIII_mask_dr8_LERG_unclassified & not_yet_classified_mask_3)] = 4  
-    # classification_source[np.where(OIII_mask_dr8_HERG & not_yet_classified_mask_3)] = 4
+    L_14 = L_z(tbdata['z_2'], -0.8, tbdata['NVSS_flux']) 
+    L_14_2 = L_z(tbdata['z_3'], -0.8, tbdata['NVSS_flux']) 
+    L_14_3 = L_z(tbdata['z_4'], -0.8, tbdata['NVSS_flux']) 
+    L_14 = np.where(np.isnan(L_14), L_14_2, L_14)
+    L_14 = np.where(np.isnan(L_14), L_14_3, L_14)
     
-    # J = len(name[(classification==2) & mask_F & (classification_source==4)])
-    # K = len(name[(classification==3) & mask_F & (classification_source==4)])
-    # print('DR8 OIII EW criterium: there are {0} HERGS an {1} unclassified or LERG in {2}'.\
-    #       format(J, K, F))
+    #L_OIII/L_sun, calculated either from DR8 or DR12.
+    L_OIII = L_optical( O_III_flux_DR8 ,tbdata['Z_2'])
+    L_OIII_2 = L_optical( O_III_flux_DR12 ,tbdata['Z_3'])    
+    L_OIII = np.where(np.isnan(L_OIII),L_OIII_2, L_OIII)
+    
+    #Here we make the unclassified figure
+    plt.figure(figsize=(10,8))
+    plot_mask_HERG = ((classification == 2) & (mask_F))
+    plot_mask_LERG = ((classification == 1) & mask_F)
+    plot_mask_u = ((classification==3) & mask_F)
+    plot_mask_HERG_PS = ((classification==2) & mask_PS) 
+    plot_mask_LERG_PS = ((classification==1) & mask_PS) 
+    plot_mask_u_PS = ((classification==3)&mask_PS) 
+    
+    if PS == 'GPS':
+        plt.scatter(np.log10(L_14[plot_mask_HERG]), np.log10(L_OIII[plot_mask_HERG]) , alpha=0.5, zorder=1, color='red', s=4, label='HERG {}'.format(F)) 
+        plt.scatter(np.log10(L_14[plot_mask_LERG]), np.log10(L_OIII[plot_mask_LERG]) , alpha=0.5, zorder=1, color='black', s=3, label='LERG {}'.format(F))
+        # plt.scatter(L_14[plot_mask_u], L_OIII[plot_mask_u] , alpha=0.3, zorder=1, color='green', s=10, label='LERG {}'.format(F))
+    
+    if PS == 'MPS':
+        plt.scatter(np.log10(L_14[plot_mask_HERG]), np.log10(L_OIII[plot_mask_HERG]) , alpha=0.7, zorder=1, color='red', s=4, label='HERG {}'.format(F)) 
+        plt.scatter(np.log10(L_14[plot_mask_LERG]), np.log10(L_OIII[plot_mask_LERG]) , alpha=0.7, zorder=1, color='black', s=3, label='LERG {}'.format(F))
+        # plt.scatter(L_14[plot_mask_u], L_OIII[plot_mask_u] , alpha=0.3, zorder=1, color='green', s=10, label='LERG {}'.format(F))
+    
+    plt.scatter(np.log10(L_14[plot_mask_HERG_PS]), np.log10(L_OIII[plot_mask_HERG_PS]) , alpha=1, zorder=20, color='red', s=40, marker='D', label='HERG {}'.format(PS)) 
+    plt.scatter(np.log10(L_14[plot_mask_LERG_PS]), np.log10(L_OIII[plot_mask_LERG_PS]) , alpha=1, zorder=20, color='orange', s=40, marker='s', label='LERG {}'.format(PS))
+    plt.scatter(np.log10(L_14[plot_mask_u_PS]), np.log10(L_OIII[plot_mask_u_PS]) , alpha=1, zorder=1, color='blue', marker='^', s=40, label='Unclassified {}'.format(PS))
+
+
+    plt.ylim(5, 9)
+    plt.xlim(22, 27)
+    
+    x_range = np.linspace(22, 27, 10000)
+    plt.plot(x_range, (0.3009*(x_range)-0.72), color='black')
+    plt.xlabel(r'$\log_{10}(L_{NVSS}/\rm{W\,Hz^{-1}})$', fontsize=20)
+    plt.ylabel(r'$\log_{10}(L_{[OIII]}/L_{sun})$', fontsize=20)
+    plt.legend()
+    plt.savefig('unclassified_'+F+'.pdf')
+    
+    
+
+    
+    mask_belowline = (np.log10(L_OIII) < (0.3009 * np.log10(L_14) - 0.72))
+    classification_source[np.where((L_14>0.) & (L_OIII>0.) & (mask_belowline) & (classification == 3))] = 4   
+    classification[np.where((L_14>0.) & (L_OIII>0.) & (mask_belowline) & (classification == 3))] = 1
+
         
-    # j = len(name[(classification==2) & mask_PS & (classification_source==4)])
-    # k = len(name[(classification==3) & mask_PS & (classification_source==4)])
-    # print('DR8 OIII EW criterium: there are {0} HERGS an {1} unclassified or LERG in {2}'.\
-    #       format(j, k, PS))   
-    
-    # print('')     
-    
+    X = len(name[  mask_F & (classification_source==4)])
+    Y = len(name[np.where(mask_F & (L_14>0.) & (L_OIII>0.) & (~mask_belowline) & (classification == 3)) ])
+    print('F: OIII lum: there are {0} LERGS, {1} above the line'.format(X, Y))
+    x = len(name[mask_PS & (classification_source==4)])
+    y = len(name[np.where(mask_PS & (L_14>0.) & (L_OIII>0.) & (~mask_belowline) & (classification == 3)) ])
+    print('PS: OIII lum: there are {0} LERGS, {1} above the line'.format(x, y))
+    print('')
+
     L = len(name[(classification==1) & mask_F])
     M = len(name[(classification==2) & mask_F])
     N = len(name[(classification==3) & mask_F])
@@ -254,58 +300,7 @@ for PS in ['MPS', 'GPS']:
     print('--------------------------------------------------------------------')
 
     
-    # Use z from eithert Best&H 2012, or from DR12. Others are not going to have an OIII line anyway
-    L_14 = L_z(tbdata['z_2'], -0.8, tbdata['NVSS_flux']) 
-    L_14_2 = L_z(tbdata['z_3'], -0.8, tbdata['NVSS_flux']) 
-    L_14_3 = L_z(tbdata['z_4'], -0.8, tbdata['NVSS_flux']) 
-    L_14 = np.where(np.isnan(L_14), L_14_2, L_14)
-    L_14 = np.where(np.isnan(L_14), L_14_3, L_14)
-    
-    #L_OIII/L_sun, calculated either from DR8 or DR12.
-    L_OIII = L_optical( O_III_flux_DR8 ,tbdata['Z_2'])
-    L_OIII_2 = L_optical( O_III_flux_DR12 ,tbdata['Z_3'])    
-    L_OIII = np.where(np.isnan(L_OIII),L_OIII_2, L_OIII)
-    
-    plt.figure(figsize=(10,8))
-    plot_mask_HERG = ((classification == 2) & (mask_F))
 
-    plot_mask_LERG = ((classification == 1) & mask_F)
-
-    plot_mask_u = ((classification==3) & mask_F)
-    
-    plot_mask_HERG_PS = ((classification==2) & mask_PS) 
-    plot_mask_LERG_PS = ((classification==1) & mask_PS) 
-    plot_mask_u_PS = ((classification==3)&mask_PS) 
-    
-    if PS == 'GPS':
-        plt.scatter(np.log10(L_14[plot_mask_HERG]), np.log10(L_OIII[plot_mask_HERG]) , alpha=0.5, zorder=1, color='red', s=4, label='HERG {}'.format(F)) 
-        plt.scatter(np.log10(L_14[plot_mask_LERG]), np.log10(L_OIII[plot_mask_LERG]) , alpha=0.5, zorder=1, color='black', s=3, label='LERG {}'.format(F))
-        plt.scatter(L_14[plot_mask_u], L_OIII[plot_mask_u] , alpha=0.3, zorder=1, color='green', s=10, label='LERG {}'.format(F))
-    
-    if PS == 'MPS':
-        plt.scatter(np.log10(L_14[plot_mask_HERG]), np.log10(L_OIII[plot_mask_HERG]) , alpha=0.7, zorder=1, color='red', s=4, label='HERG {}'.format(F)) 
-        plt.scatter(np.log10(L_14[plot_mask_LERG]), np.log10(L_OIII[plot_mask_LERG]) , alpha=0.7, zorder=1, color='black', s=3, label='LERG {}'.format(F))
-        # plt.scatter(L_14[plot_mask_u], L_OIII[plot_mask_u] , alpha=0.3, zorder=1, color='green', s=10, label='LERG {}'.format(F))
-    
-    plt.scatter(np.log10(L_14[plot_mask_HERG_PS]), np.log10(L_OIII[plot_mask_HERG_PS]) , alpha=1, zorder=20, color='red', s=40, marker='D', label='HERG {}'.format(PS)) 
-    plt.scatter(np.log10(L_14[plot_mask_LERG_PS]), np.log10(L_OIII[plot_mask_LERG_PS]) , alpha=1, zorder=20, color='orange', s=40, marker='s', label='LERG {}'.format(PS))
-    plt.scatter(np.log10(L_14[plot_mask_u_PS]), np.log10(L_OIII[plot_mask_u_PS]) , alpha=1, zorder=1, color='blue', marker='^', s=40, label='{} unclassified'.format(PS))
-
-
-    plt.ylim(5, 9)
-    plt.xlim(22, 27)
-    
-    x_range = np.linspace(22, 27, 10000)
-    plt.plot(x_range, (0.3009*(x_range)-0.72), color='black')
-    plt.xlabel(r'$\log_{10}L_{NVSS}/\rm{W\,Hz^{-1}}$', fontsize=20)
-    plt.ylabel(r'$\log_{10}(L_{[OIII]}/L_{sun})$', fontsize=20)
-    plt.legend()
-    plt.savefig('unclassified_'+F+'.pdf')
-    
-    print(len(L_14[plot_mask_u_PS][np.log10(L_OIII[plot_mask_u_PS])>=(0.3009*np.log10(L_14[plot_mask_u_PS])-0.72)]), 'Are PS above the line')
-    print(len(L_14[plot_mask_u_PS][np.log10(L_OIII[plot_mask_u_PS])<(0.3009*np.log10(L_14[plot_mask_u_PS])-0.72)]), 'Are PS below the line')
-    print(len(L_14[plot_mask_u][np.log10(L_OIII[plot_mask_u])>=(0.3009*np.log10(L_14[plot_mask_u])-0.72)]), 'Are F above the line')
-    print(len(L_14[plot_mask_u][np.log10(L_OIII[plot_mask_u])<(0.3009*np.log10(L_14[plot_mask_u])-0.72)]), 'Are F below the line')
 def ratio(x,y,z, x_err=0, y_err=0, z_err=0):
     R = x/(x+y+z)
     if x_err == 0:
@@ -317,4 +312,6 @@ def ratio(x,y,z, x_err=0, y_err=0, z_err=0):
     err_R = np.sqrt((x_err**2 * (y+z)**2 + x**2 * (y_err**2 + z_err**2))/(x+y+z)**4)
     return R, err_R
 
-print(ratio(  6,9,2,   x_err = 2.38, y_err=2.943, z_err=1.292))
+print(ratio( 6,10,2, y_err= 6.891, z_err=0.708, x_err=3.620))
+      
+      

@@ -11,6 +11,7 @@ from tqdm import tqdm
 import scipy.optimize as opt
 import gpscssmodels
 from astropy.table import Table
+import matplotlib.pyplot as plt
 
 
 """
@@ -34,40 +35,102 @@ def crossmatching1():
     """
     print('er gebeurt iets')
     os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
-              tmatchn join1=always matcher=sky multimode=pairs nin=2 params=6 \
+              tmatchn join1=always matcher=sky multimode=pairs nin=2 params=2.5 \
         in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/crossmatch_NVSS_LoTSS.fits values1="RA DEC" \
         in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/official_VLASS_final_selection.fits values2="RA DEC" \
         out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASS.fits')
     
     print("crossmatching 1 done")
 
-
 def crossmatching2():
+    """
+    Crossmatching is done seperately for LoTSS-NVSS with LoLSS, since VLASS has a higher resolution.
+    params=3 arcsec
+    """
+    print('er gebeurt iets')
+    os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
+              tmatchn join1=always matcher=sky multimode=pairs nin=2 params=5 \
+        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASS.fits values1="RA_1 DEC_1" \
+        in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLLS_new_names.fits values2="RA DEC"\
+        out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASSLoLSS.fits')
+    
+    print("crossmatching 2 done")
+
+def crossmatching3():
     
     """
     Crossmatching for the LoTSS NVSS VLASS sample with all the other radio surveys.
     params=15 arcsec
     """
     os.system('java -jar /net/vdesk/data2/bach1/ballieux/master_project_1/topcat-full.jar -stilts \
-              tmatchn join1=always matcher=sky multimode=pairs nin=13 params=15 \
-        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASS.fits values1="RA_1 DEC_1" \
-        in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/TGSS.fits values2="RAJ2000 DEJ2000" \
-        in3=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/VLSSr.fits values3="RAJ2000 DEJ2000" \
-        in4=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/LoLLS_new_names.fits values4="RA DEC"\
-        in5=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/first_14dec17.fits values5="RA DEC"\
-        in6=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/inband_spec_LoTSS.fits values6="RA DEC" \
-        in7=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_0_source.fits values7="RA DEC" \
-        in8=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_1_source.fits values8="RA DEC" \
-        in9=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_2_source.fits values9="RA DEC" \
-        in10=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_3_source.fits values10="RA DEC"\
-        in11=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband//channel_4_source.fits values11="RA DEC"\
-        in12=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_5_source.fits values12="RA DEC" \
-        in13=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/WENSS.fits values13="_RAJ2000 _DEJ2000" \
+              tmatchn join1=always matcher=sky multimode=pairs nin=12 params=10 \
+        in1=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASSLoLSS.fits values1="RA_1 DEC_1" \
+        in2=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/VLSSr.fits values2="RAJ2000 DEJ2000" \
+        in3=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/TGSS.fits values3="RAJ2000 DEJ2000" \
+        in4=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/first_14dec17.fits values4="RA DEC"\
+        in5=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/inband_spec_LoTSS.fits values5="RA DEC" \
+        in6=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_0_source.fits values6="RA DEC" \
+        in7=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_1_source.fits values7="RA DEC" \
+        in8=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_2_source.fits values8="RA DEC" \
+        in9=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_3_source.fits values9="RA DEC"\
+        in10=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband//channel_4_source.fits values10="RA DEC"\
+        in11=/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoLSS_inband/channel_5_source.fits values11="RA DEC" \
+        in12=/net/vdesk/data2/bach1/ballieux/master_project_1/data/surveys/WENSS.fits values12="_RAJ2000 _DEJ2000" \
         out=/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_dirty.fits')
     
-    print("crossmatching 2 done")
-crossmatching1()
-crossmatching2()
+    print("crossmatching 3 done")
+# crossmatching1()
+# crossmatching2()
+# crossmatching3()
+
+#For checking right crossmatching radius
+# hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/LoTSSNVSSVLASS.fits")
+# tbdata = hdulist[1].data
+# hdulist.close()
+# print(len(tbdata['RA_2'][np.where(tbdata['RA_2']>0.)]))
+
+# r = [0.5,1,1.5,2,3,4,5,6,8]
+# N=np.array([73136,99302,107966,111939,115955,118039,119285,120041,120879])
+
+# c = (157029*232346/(5635*3600*3600)) * np.square(r) * np.pi
+# # plt.figure()
+# # plt.plot(r,N, label='N (total number of associations)')
+# # plt.plot(r,c, label='C (chance associations)')
+# # plt.plot(r,N-c, label='N-C')
+# # plt.ylabel('number of sources')
+# plt.plot(r,c*100/N, label='C/N')
+# plt.hlines(1,0,8, label='1%')
+# plt.ylabel('Percentage')
+# # plt.yscale('log')
+# # plt.xscale('log')
+# plt.legend()
+# plt.xlabel('r in arcsec')
+
+
+#For checking right crossmatching radius
+# hdulist = fits.open("/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_dirty.fits")
+# tbdata = hdulist[1].data
+# hdulist.close()
+# print(len(tbdata['RA_4'][np.where(tbdata['RA_4']>0.)]))
+
+# r = [1,1.5,2,3,4,5,6,8,10,15,20]
+# N=np.array([5604,8636,10641,12650,13316,13606,13721,13827,13859,13891,13903])
+
+# c = (157029*368121/(5635*3600*3600)) * np.square(r) * np.pi
+# plt.figure()
+# plt.plot(r,N, label='N (total number of associations)')
+# plt.plot(r,c, label='C (chance associations)')
+# plt.plot(r,N-c, label='N-C')
+# plt.ylabel('number of sources')
+# # plt.plot(r,c*100/N, label='C/N')
+# # plt.hlines(1,0,8, label='1%')
+# # plt.ylabel('Percentage')
+# # plt.yscale('log')
+# # plt.xscale('log')
+# plt.legend()
+# plt.xlabel('r in arcsec')
+
+
 
 """
 We now have a crossmatched table, this needs to be cleaned, put in the same units,
@@ -96,22 +159,23 @@ S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['S1_4']
 S_NVSS, e_S_NVSS = np.where(np.isnan(S_NVSS), 0., S_NVSS), np.where(np.isnan(S_NVSS), 0., e_S_NVSS) #deal with any non-detections
 
 #VLASS
+# S_VLASS, e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., 0.1 * np.array(tbdata['Total_flux_2'])/1000. # Jy
 S_VLASS, e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., 0.1 * np.array(tbdata['Total_flux_2'])/1000. # Jy
 S_VLASS, e_S_VLASS = np.where(np.isnan(S_VLASS), 0., S_VLASS), np.where(np.isnan(S_VLASS), 0., e_S_VLASS) #deal with non-detections
 
+#LoLSS
+S_LoLSS, e_S_LoLSS = np.array(tbdata['Total_flux_LoLLS'])/1000., np.array(tbdata['E_Total_flux_LoLLS'])/1000. # Jy/beam
+S_LoLSS, e_S_LoLSS = np.where(np.isnan(S_LoLSS), 0, S_LoLSS), np.where(np.isnan(S_LoLSS), 0, e_S_LoLSS)
 
 
-#TGSS
-S_TGSS, e_S_TGSS = np.array(tbdata['Stotal'])/1000., np.array(tbdata['e_Stotal'])/1000. # Jy/beam
-S_TGSS, e_S_TGSS = np.where(np.isnan(S_TGSS), 0, S_TGSS), np.where(np.isnan(S_TGSS), 0, e_S_TGSS)
 
 #VLSSr
 S_VLSSr, e_S_VLSSr = np.array(tbdata['Sp']), 0.1 * np.array(tbdata['Sp']) # Jy
 S_VLSSr, e_S_VLSSr = np.where(np.isnan(S_VLSSr), 0, S_VLSSr), np.where(np.isnan(S_VLSSr), 0, e_S_VLSSr)
 
-#LoLSS
-S_LoLSS, e_S_LoLSS = np.array(tbdata['Total_flux_LoLLS'])/1000., np.array(tbdata['E_Total_flux_LoLLS'])/1000. # Jy/beam
-S_LoLSS, e_S_LoLSS = np.where(np.isnan(S_LoLSS), 0, S_LoLSS), np.where(np.isnan(S_LoLSS), 0, e_S_LoLSS)
+#TGSS
+S_TGSS, e_S_TGSS = np.array(tbdata['Stotal'])/1000., np.array(tbdata['e_Stotal'])/1000. # Jy/beam
+S_TGSS, e_S_TGSS = np.where(np.isnan(S_TGSS), 0, S_TGSS), np.where(np.isnan(S_TGSS), 0, e_S_TGSS)
 
 #FIRST
 S_FIRST, e_S_FIRST = np.array(tbdata['FINT'])/1000, 0.1*(np.array(tbdata['FINT'])/1000) #Jy, set error to 10% of flux
@@ -128,22 +192,22 @@ S_inband_high, e_S_inband_high = np.array(tbdata['M1_L3flux']), 0.1 * np.array(t
 S_inband_high, e_S_inband_high = np.where(np.isnan(S_inband_high), 0, S_inband_high), np.where(np.isnan(S_inband_high), 0, e_S_inband_high)
 
 #inband_LoLSS
-S_channel0, e_S_channel0 = tbdata['Total_flux_7']/1000., tbdata['E_Total_flux_7']/1000. # Jy
+S_channel0, e_S_channel0 = tbdata['Total_flux_6']/1000., tbdata['E_Total_flux_6']/1000. # Jy
 S_channel0, e_S_channel0 = np.where(np.isnan(S_channel0), 0, S_channel0), np.where(np.isnan(S_channel0), 0, e_S_channel0)
 
-S_channel1, e_S_channel1 = tbdata['Total_flux_8']/1000., tbdata['E_Total_flux_8']/1000. # Jy
+S_channel1, e_S_channel1 = tbdata['Total_flux_7']/1000., tbdata['E_Total_flux_7']/1000. # Jy
 S_channel1, e_S_channel1 = np.where(np.isnan(S_channel1), 0, S_channel1), np.where(np.isnan(S_channel1), 0, e_S_channel1)
 
-S_channel2, e_S_channel2 = tbdata['Total_flux_9']/1000., tbdata['E_Total_flux_9']/1000. # Jy
+S_channel2, e_S_channel2 = tbdata['Total_flux_8']/1000., tbdata['E_Total_flux_8']/1000. # Jy
 S_channel2, e_S_channel2 = np.where(np.isnan(S_channel2), 0, S_channel2), np.where(np.isnan(S_channel2), 0, e_S_channel2)
 
-S_channel3, e_S_channel3 = tbdata['Total_flux_10']/1000., tbdata['E_Total_flux_10']/1000. # Jy
+S_channel3, e_S_channel3 = tbdata['Total_flux_9']/1000., tbdata['E_Total_flux_9']/1000. # Jy
 S_channel3, e_S_channel3 = np.where(np.isnan(S_channel3), 0, S_channel3), np.where(np.isnan(S_channel3), 0, e_S_channel3)
 
-S_channel4, e_S_channel4 = tbdata['Total_flux_11']/1000., tbdata['E_Total_flux_11']/1000. # Jy
+S_channel4, e_S_channel4 = tbdata['Total_flux_10']/1000., tbdata['E_Total_flux_10']/1000. # Jy
 S_channel4, e_S_channel4 = np.where(np.isnan(S_channel4), 0, S_channel4), np.where(np.isnan(S_channel4), 0, e_S_channel4)
 
-S_channel5, e_S_channel5 = tbdata['Total_flux_12']/1000., tbdata['E_Total_flux_12']/1000. # Jy
+S_channel5, e_S_channel5 = tbdata['Total_flux_11']/1000., tbdata['E_Total_flux_11']/1000. # Jy
 S_channel5, e_S_channel5 = np.where(np.isnan(S_channel5), 0, S_channel5), np.where(np.isnan(S_channel5), 0, e_S_channel5)
 
 #WENSS
@@ -508,32 +572,34 @@ col13 = fits.Column(name='e_VLASS_flux', format = 'E', array = e_S_VLASS)
 col14 = fits.Column(name='VLASS_quality_flags', format = '8A', array = tbdata['Quality_flag'])
 col43 = fits.Column(name='VLASS_duplicate_flags', format = '8A', array = tbdata['Duplicate_flag'])
 col80 = fits.Column(name='VLASS_source_type', format = '8A', array = tbdata['Source_type'])
-col81 = fits.Column(name='VLASS_S_code', format = '8A', array = tbdata['S_Code_1'])
+col81 = fits.Column(name='VLASS_S_code', format = '8A', array = tbdata['S_Code_2'])
 col82 = fits.Column(name='VLASS_peak_to_ring', format = 'E', array = tbdata['Peak_to_ring'])
 col83 = fits.Column(name='VLASS_isl_rms', format = 'E', array = tbdata['Isl_rms_2'])
 
-col15 = fits.Column(name='TGSS_RA', format = 'E', array = tbdata['RAJ2000_2'])
-col16 = fits.Column(name='TGSS_Dec', format = 'E', array = tbdata['DEJ2000_2'])
-col17 = fits.Column(name='TGSS_flux', format = 'E', array = S_TGSS)
-col18 = fits.Column(name='e_TGSS_flux', format = 'E', array = e_S_TGSS)
-
-col19 = fits.Column(name='VLSSr_RA', format = 'E', array = tbdata['RAJ2000_3'])
-col20 = fits.Column(name='VLSSr_Dec', format = 'E', array = tbdata['DEJ2000_3'])
-col21 = fits.Column(name='VLSSr_flux', format = 'E', array = S_VLSSr)
-col22 = fits.Column(name='e_VLSSr_flux', format = 'E', array = e_S_VLSSr)
-
-col23 = fits.Column(name='LoLSS_RA', format = 'E', array = tbdata['RA_4'])
-col24 = fits.Column(name='LoLSS_Dec', format = 'E', array = tbdata['DEC_4'])
+col23 = fits.Column(name='LoLSS_RA', format = 'E', array = tbdata['RA_1a'])
+col24 = fits.Column(name='LoLSS_Dec', format = 'E', array = tbdata['DEC_1a'])
 col25 = fits.Column(name='LoLSS_flux', format = 'E', array = S_LoLSS)
 col26 = fits.Column(name='e_LoLSS_flux', format = 'E', array = e_S_LoLSS)
 
-col27 = fits.Column(name='FIRST_RA', format = 'E', array = tbdata['RA_5'])
-col28 = fits.Column(name='FIRST_Dec', format = 'E', array = tbdata['DEC_5'])
+
+col19 = fits.Column(name='VLSSr_RA', format = 'E', array = tbdata['RAJ2000_2'])
+col20 = fits.Column(name='VLSSr_Dec', format = 'E', array = tbdata['DEJ2000_2'])
+col21 = fits.Column(name='VLSSr_flux', format = 'E', array = S_VLSSr)
+col22 = fits.Column(name='e_VLSSr_flux', format = 'E', array = e_S_VLSSr)
+
+
+col15 = fits.Column(name='TGSS_RA', format = 'E', array = tbdata['RAJ2000_3'])
+col16 = fits.Column(name='TGSS_Dec', format = 'E', array = tbdata['DEJ2000_3'])
+col17 = fits.Column(name='TGSS_flux', format = 'E', array = S_TGSS)
+col18 = fits.Column(name='e_TGSS_flux', format = 'E', array = e_S_TGSS)
+
+col27 = fits.Column(name='FIRST_RA', format = 'E', array = tbdata['RA_4'])
+col28 = fits.Column(name='FIRST_Dec', format = 'E', array = tbdata['DEC_4'])
 col29 = fits.Column(name='FIRST_flux', format = 'E', array = S_FIRST)
 col30 = fits.Column(name='e_FIRST_flux', format = 'E', array = e_S_FIRST) 
 
-col31 = fits.Column(name='inband_RA', format = 'E', array = tbdata['RA_6'])
-col32 = fits.Column(name='inband_Dec', format = 'E', array = tbdata['DEC_6'])
+col31 = fits.Column(name='inband_RA', format = 'E', array = tbdata['RA_5'])
+col32 = fits.Column(name='inband_Dec', format = 'E', array = tbdata['DEC_5'])
 col33 = fits.Column(name='S_inband_low', format = 'E', array = S_inband_low)
 col34 = fits.Column(name='e_S_inband_low', format = 'E', array = e_S_inband_low)
 col35 = fits.Column(name='S_inband_mid', format = 'E', array = S_inband_mid)
@@ -541,33 +607,33 @@ col36 = fits.Column(name='e_S_inband_mid', format = 'E', array = e_S_inband_mid)
 col37 = fits.Column(name='S_inband_high', format = 'E', array = S_inband_high)
 col38 = fits.Column(name='e_S_inband_high', format = 'E', array = e_S_inband_high)
 
-col39 = fits.Column(name='channel0_RA', format = 'E', array= tbdata['RA_7'])
-col40 = fits.Column(name='channel0_Dec', format = 'E', array = tbdata['DEC_7'])
+col39 = fits.Column(name='channel0_RA', format = 'E', array= tbdata['RA_6'])
+col40 = fits.Column(name='channel0_Dec', format = 'E', array = tbdata['DEC_6'])
 col41 = fits.Column(name='channel0_flux', format = 'E', array = S_channel0) #Jansky
 col42 = fits.Column(name='e_channel0_flux', format = 'E', array = e_S_channel0)
 
-col44 = fits.Column(name='channel1_RA', format = 'E', array= tbdata['RA_8'])
-col45 = fits.Column(name='channel1_Dec', format = 'E', array = tbdata['DEC_8'])
+col44 = fits.Column(name='channel1_RA', format = 'E', array= tbdata['RA_7'])
+col45 = fits.Column(name='channel1_Dec', format = 'E', array = tbdata['DEC_7'])
 col46 = fits.Column(name='channel1_flux', format = 'E', array = S_channel1)
 col47 = fits.Column(name='e_channel1_flux', format = 'E', array = e_S_channel1)
 
-col48 = fits.Column(name='channel2_RA', format = 'E', array= tbdata['RA_9'])
-col49 = fits.Column(name='channel2_Dec', format = 'E', array = tbdata['DEC_9'])
+col48 = fits.Column(name='channel2_RA', format = 'E', array= tbdata['RA_8'])
+col49 = fits.Column(name='channel2_Dec', format = 'E', array = tbdata['DEC_8'])
 col50 = fits.Column(name='channel2_flux', format = 'E', array = S_channel2)
 col51 = fits.Column(name='e_channel2_flux', format = 'E', array = e_S_channel2)
 
-col52 = fits.Column(name='channel3_RA', format = 'E', array= tbdata['RA_10'])
-col53 = fits.Column(name='channel3_Dec', format = 'E', array = tbdata['DEC_10'])
+col52 = fits.Column(name='channel3_RA', format = 'E', array= tbdata['RA_9'])
+col53 = fits.Column(name='channel3_Dec', format = 'E', array = tbdata['DEC_9'])
 col54 = fits.Column(name='channel3_flux', format = 'E', array = S_channel3)
 col55 = fits.Column(name='e_channel3_flux', format = 'E', array = e_S_channel3)
 
-col56 = fits.Column(name='channel4_RA', format = 'E', array= tbdata['RA_11'])
-col57 = fits.Column(name='channel4_Dec', format = 'E', array = tbdata['DEC_11'])
+col56 = fits.Column(name='channel4_RA', format = 'E', array= tbdata['RA_10'])
+col57 = fits.Column(name='channel4_Dec', format = 'E', array = tbdata['DEC_10'])
 col58 = fits.Column(name='channel4_flux', format = 'E', array = S_channel4)
 col59 = fits.Column(name='e_channel4_flux', format = 'E', array = e_S_channel4)
 
-col60 = fits.Column(name='channel5_RA', format = 'E', array= tbdata['RA_12'])
-col61 = fits.Column(name='channel5_Dec', format = 'E', array = tbdata['DEC_12'])
+col60 = fits.Column(name='channel5_RA', format = 'E', array= tbdata['RA_11'])
+col61 = fits.Column(name='channel5_Dec', format = 'E', array = tbdata['DEC_11'])
 col62 = fits.Column(name='channel5_flux', format = 'E', array = S_channel5)
 col63 = fits.Column(name='e_channel5_flux', format = 'E', array = e_S_channel5)
 

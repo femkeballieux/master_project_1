@@ -90,7 +90,7 @@ y_max = 28.
 P = 10**(np.linspace(19,y_max+2,1000))
 P_0_14 = 10**(24.95)
 alpha_extrap = -0.7
-P_0 = P_0_14 * (144/1400)**alpha_extrap
+P_0 = P_0_14 * (144/1400) ** alpha_extrap
 a = 0.42
 b = 1.66
 rho_0 = 10**(-5.33)
@@ -184,7 +184,7 @@ ax6.set_visible(False)
 fig2, ax1 = plt.subplots(figsize=(10,7.5))
 
 for index, z_bin_min in enumerate(redshift_bins[:-2]):
-    hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/MPS_lum_func.fits')
+    hdulist = fits.open('/net/vdesk/data2/bach1/ballieux/master_project_1/Luminosity_functions/MPS_lum_func_alpha0.fits')
     tbdata = hdulist[1].data
     hdulist.close()
 
@@ -256,8 +256,10 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     log_Power_144 = np.log10(Power_144_z)
 
     # define PS sample
+    # ind_peaked = np.where((alpha_low_z > e_alpha_low_z)\
+    #                       & (alpha_high_z < - e_alpha_high_z))
     ind_peaked = np.where((alpha_low_z > e_alpha_low_z)\
-                          & (alpha_high_z < - e_alpha_high_z))
+                          & (alpha_high_z < 0))
     z_max_144_PS = z_max_144_z[ind_peaked]
     V_i_PS = V_i[ind_peaked]
 
@@ -311,7 +313,7 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     # Plot luminosity function
     ax.errorbar(central_bins_144[idx_cutoff[index]:], log_lum_func_144[idx_cutoff[index]:],\
                 xerr=log_xerr_144[idx_cutoff[index]:], yerr = log_err_lum_func_144[:,idx_cutoff[index]:], c = 'k', \
-                marker = 'o', markersize = 10, linestyle ='none', mfc = marker_face, capthick = 2, label = 'LF Master Sample')#', $m_i\, <$'+ m_i)
+                marker = 'o', markersize = 10, linestyle ='none', mfc = marker_face, capthick = 2, label = 'LF sample')#', $m_i\, <$'+ m_i)
     ax.errorbar(central_bins_144_PS[idx_cutoff_PS[index]:], log_lum_func_144_PS[idx_cutoff_PS[index]:],\
                 xerr=log_xerr_144_PS[idx_cutoff_PS[index]:], yerr = log_err_lum_func_144_PS[:,idx_cutoff_PS[index]:], c = 'crimson',\
                 marker = '^',  capthick = 2, markersize = 10, mfc = marker_face_PS, linestyle = 'none', label = 'MPS sample')#', $m_i\, <$'+ m_i)
@@ -380,10 +382,10 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
         ax.set_xlabel(r'$\log_{10}$(L$_{144 \, \mathrm{MHz}}$ / W Hz$^{-1}$)')
         ax.errorbar(log_L_SLob_15_3, log_phi_slob_15_3, xerr=log_L_SLob_15_3_err, \
                     yerr=log_phi_slob_15_3_err, marker="*", mfc='none', markersize = 10, \
-                        capthick = 2, linestyle='none', color='#1f78b4', label='Slob et al. 2022 Master sample') 
+                        capthick = 2, linestyle='none', color='#1f78b4', label='Slob et al. (2022) Master sample') 
         ax.errorbar(log_L_SLob_15_3_PS, log_phi_slob_15_3_PS, xerr=log_L_SLob_15_3_err_PS, \
                     yerr=log_phi_slob_15_3_err_PS, marker="*", mfc='none', markersize = 10, \
-                        capthick = 2, linestyle='none', color='mediumorchid', label='Slob et al. 2022 PS sample')             
+                        capthick = 2, linestyle='none', color='mediumorchid', label='Slob et al. (2022) PS sample')             
             
     if idx2[index] == 1:
         ax.tick_params(left = True, labelleft = False, right = True, bottom = True, labelbottom = True, top = True)
@@ -395,23 +397,23 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
     ax.tick_params(axis='both',which='both',top=True,right=True)
 
 
-    # if index != 6:
-    #     print('\n')
-    #     print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; LF Sample} &")
-    #     for i, LF in enumerate(log_lum_func_144[idx_cutoff[index]:]):
-    #         print(np.round((central_bins_144[idx_cutoff[index]:])[i],2), "$\pm$",\
-    #               np.round((log_xerr_144[idx_cutoff[index]:])[i],1), "&", (n_144[idx_cutoff[index]:])[i], \
-    #                   "& $", np.round(LF,2), "^{+", np.round((log_err_lum_func_144[:,idx_cutoff[index]:])[1,i],2)\
-    #                       , "}_{-", np.round((log_err_lum_func_144[:,idx_cutoff[index]:])[0,i],2), "}$&")
+    if index != 6:
+        print('\n')
+        print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; LF Sample} &")
+        for i, LF in enumerate(log_lum_func_144[idx_cutoff[index]:]):
+            print(np.round((central_bins_144[idx_cutoff[index]:])[i],2), "$\pm$",\
+                  np.round((log_xerr_144[idx_cutoff[index]:])[i],1), "&", (n_144[idx_cutoff[index]:])[i], \
+                      "& $", np.round(LF,2), "^{+", np.round((log_err_lum_func_144[:,idx_cutoff[index]:])[1,i],2)\
+                          , "}_{-", np.round((log_err_lum_func_144[:,idx_cutoff[index]:])[0,i],2), "}$&")
 
-    #     print('\n')
-    #     print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; MPS Sample} \ " + "\ ")
-    #     for i, LF in enumerate(log_lum_func_144_PS[idx_cutoff_PS[index]:]):
-    #         print(np.round((central_bins_144_PS[idx_cutoff_PS[index]:])[i],2), \
-    #               "$\pm$", np.round((log_xerr_144_PS[idx_cutoff_PS[index]:])[i],1), \
-    #                   "&", (n_144_PS[idx_cutoff_PS[index]:])[i], "& $", np.round(LF,2),\
-    #                       "^{+", np.round((log_err_lum_func_144_PS[:,idx_cutoff_PS[index]:])[1,i],2),\
-    #                           "}_{-", np.round((log_err_lum_func_144_PS[:,idx_cutoff_PS[index]:])[0,i],2), "}$ \ " + "\ ")
+        print('\n')
+        print("\multicolumn{3}{c}{$"+str(z_bin_min)+' < z <' + str(redshift_bins[index+1])+"$; MPS Sample} \ " + "\ ")
+        for i, LF in enumerate(log_lum_func_144_PS[idx_cutoff_PS[index]:]):
+            print(np.round((central_bins_144_PS[idx_cutoff_PS[index]:])[i],2), \
+                  "$\pm$", np.round((log_xerr_144_PS[idx_cutoff_PS[index]:])[i],1), \
+                      "&", (n_144_PS[idx_cutoff_PS[index]:])[i], "& $", np.round(LF,2),\
+                          "^{+", np.round((log_err_lum_func_144_PS[:,idx_cutoff_PS[index]:])[1,i],2),\
+                              "}_{-", np.round((log_err_lum_func_144_PS[:,idx_cutoff_PS[index]:])[0,i],2), "}$ \ " + "\ ")
 
 
 
@@ -438,7 +440,7 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
         resid_mean = np.sum(resid * resid_weights) / np.sum(resid_weights) #weighted mean
         uncertainty_in_mean = np.sqrt(1/np.sum(resid_weights))
 
-        print("{3}<z<{2} MPS {0:.4} \pm {1:.3}".format(resid_mean, uncertainty_in_mean,  str(redshift_bins[index+1]), str(redshift_bins[index])))
+        # print("{3}<z<{2} MPS {0:.4} \pm {1:.3}".format(resid_mean, uncertainty_in_mean,  str(redshift_bins[index+1]), str(redshift_bins[index])))
         
         # for i, r in enumerate(resid):
         #     print("& $", np.round(r,2), "^{+", np.round(err_resid[1,i],2), "}_{-", np.round(err_resid[0,i],2), "}$")
@@ -477,6 +479,6 @@ for index, z_bin_min in enumerate(redshift_bins[:-2]):
         ax1.set_ylim(-0.1,2.5)
         ax1.legend()
     
-fig.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/LF_lumfunc_revised.png')
-fig2.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/LF_resid_lumfunc_revised.png')
+fig.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/LF_lumfunc_revised_alpha0.pdf')
+fig2.savefig('/net/vdesk/data2/bach1/ballieux/master_project_1/plots/LF_resid_lumfunc_revised_alpha0.pdf')
 

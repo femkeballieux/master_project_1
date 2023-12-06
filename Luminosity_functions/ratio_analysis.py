@@ -4,10 +4,11 @@ from scipy.optimize import curve_fit
 from scipy.stats import chi2
 
 
-MPS = np.array([0.8084,1.26,1.277,1.372,1.719])
-err_MPS = np.array([0.271,0.125,0.115,0.298,0.336])
-GPS = np.array([0.9166,1.229,1.248,1.085,1.235])
-err_GPS = np.array([0.18,0.0319,0.0286,0.185,0.103])
+MPS = np.array([0.7452,1.232,1.235,1.37,1.708])
+err_MPS = np.array([0.253,0.122,0.116,0.297,0.331])
+
+GPS = np.array([0.7443,1.119,1.164,1.1,1.135])
+err_GPS = np.array([0.156,0.028,0.0256,0.173,0.0942])
 z_central = np.array([0.05,0.3,0.75,1.25,2.25])
 z_err = (0.05,0.2,0.25,0.25,0.75)
 
@@ -68,8 +69,8 @@ print('chi^2 and normalized value for GPS', chisquare_GPS_2, chisquare_GPS/4)
 print('chi^2 and normalized value for MPS', chisquare_MPS_2, chisquare_MPS/4)
 
 z_range = np.linspace(0,3,1000)
-plt.plot(z_range, y(z_range, popt_GPS[0], popt_GPS[1]), color='black', linestyle='-.', label='offset=az+b')
-plt.plot(z_range, linear(z_range, popt_GPS_2[0]), color='black', linestyle=':', label='offset=b')
+plt.plot(z_range, y(z_range, popt_GPS[0], popt_GPS[1]), color='black', linestyle='-.', label='Sloped fit')
+plt.plot(z_range, linear(z_range, popt_GPS_2[0]), color='black', linestyle=':', label='Horizontal fit')
 plt.plot(z_range, y(z_range, popt_MPS[0], popt_MPS[1]), color='red', linestyle='-.')
 plt.plot(z_range, linear(z_range, popt_MPS_2[0]), color='red', linestyle=':')
 plt.legend()
