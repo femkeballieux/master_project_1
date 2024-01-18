@@ -292,9 +292,10 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
         freq_array = freq_array / 1000
 
 
-
+    print(label_array)
     inband_lolss = 0 #fixing the legends
     inband_lotss = 0
+    VLBI=0
     markers=['v', '>', '<', '^', 'o', 's', 'D', '1', '2', '3', '4', 'v', '>', '<', '^', 'o', 's', 'D', '1', '2', '3', '4', 'v', '>', '<', '^', 'o', 's', 'D', '1', '2', '3', '4', 'v', '>', '<', '^', 'o', 's', 'D', '1', '2', '3', '4']
     colors=['darkorange', 'red', 'blue', 'darkmagenta', 'black', 'magenta', 'deeppink', \
             'mediumorchid', 'darkorange', 'red', 'blue', 'darkmagenta', 'black', 'magenta', 'blue', 'mediumorchid','darkorange', 'red', 'blue', 'darkmagenta', 'black', 'magenta', 'green', \
@@ -305,11 +306,11 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
             if 'LoLLS_ch' in str(label_array[s]):
                 if inband_lolss==0:
                     plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
-                              label='LoLSS inband', zorder=10, fmt='o', color='grey', alpha=0.6,markersize=8)
+                              label='LoLSS inband', zorder=1, fmt='o', color='grey', alpha=0.6,markersize=8)
                     inband_lolss=1   
                 else:
                     plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
-                          zorder=10, fmt='o', color='grey', alpha=0.6,markersize=8)
+                          zorder=1, fmt='o', color='grey', alpha=0.6,markersize=8)
                         
             elif 'inband_' in str(label_array[s]):
                 if inband_lotss == 0:
@@ -318,16 +319,43 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
                     inband_lotss = 1
                 else:
                     plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
-                          zorder=10, fmt='o', color='darkgreen', alpha=0.35 ,markersize=8)
+                          zorder=1, fmt='o', color='darkgreen', alpha=0.35 ,markersize=8)
+                    
+            elif 'LoTSS' in str(label_array[s]):
+                plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                              label='LoTSS', zorder=10, fmt='v', color='darkgreen', markersize=8)
+                    
+            elif 'LoLSS' in str(label_array[s]):
+                plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                            label='LoLSS', zorder=10, fmt='^', color='black', markersize=8)
+                
+            elif 'NVSS' in str(label_array[s]):
+                plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                              label='NVSS', zorder=11, fmt='>', color='red', markersize=8)
                     
             elif label_array[s]=='VLASS':
                 if error_array[s]==-1.:
                     plt.plot(freq_array[s], flux_array[s],\
-                            label=label_array[s], zorder=10, marker='v', color=colors[s] ,markersize=8)  
+                            label=label_array[s], zorder=10, marker='d', color=colors[s] ,markersize=8)  
                     print('UPPERLIMIT')
                 else:
                     plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
-                      label=label_array[s], zorder=10, fmt='o', color=colors[s],markersize=8)
+                      label=label_array[s], zorder=10, fmt='d', color=colors[s],markersize=8)
+                    
+            elif 'FIRST' in str(label_array[s]):
+                plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                              label='FIRST', zorder=10, fmt='s', color='darkorange', markersize=8)
+                
+
+            elif 'VLBI' in str(label_array[s]):
+                if VLBI == 0:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                          label='VLBI', zorder=10, fmt='X', color='magenta', markersize=8)
+                    VLBI = 1
+                else:
+                    plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
+                          zorder=10, fmt='X', color='magenta', markersize=8)
+
             else:    
                 plt.errorbar(freq_array[s], flux_array[s], yerr=error_array[s],\
                       label=label_array[s], zorder=10, fmt='o', marker=markers[s], markersize=8, color=colors[s])
@@ -407,6 +435,7 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
     if galaxy_name == tbdata['LoTSS_name'][66495]:
         fluxplot, freqplot, flux_errplot, poptgen, pcovgen, did_it_fit = \
                     spectral_index_eval_curve_convex(freq_array, flux_array, error_array)
+        plt.ylim(ymin=200, ymax=600)
         # print('parameters for the curve are', poptgen )
         if did_it_fit:
             plt.plot(x_range_full, curve_convex(x_range_full, poptgen[0], poptgen[1] , poptgen[2], poptgen[3], poptgen[4], poptgen[5] ), color='black')
@@ -418,7 +447,7 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
             plt.plot(x_range_full, curve(x_range_full, poptgen[0], poptgen[1] , poptgen[2], poptgen[3] ), color='black', linestyle='dotted')
     
     #make legend
-    plt.legend(bbox_to_anchor=(0.9, 0.53))
+    plt.legend(bbox_to_anchor=(0.8, 0.54), fontsize=15)
     
     #save figure
     if save_fig:
@@ -443,6 +472,7 @@ def make_sed_singular(galaxy_name, use_index=False, save_fig=False):
 
 #convex source
 make_sed_singular(tbdata['LoTSS_name'][66495], save_fig=True) 
+
 
 #Make all PS seds
 # counter=0

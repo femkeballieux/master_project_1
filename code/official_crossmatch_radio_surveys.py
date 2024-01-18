@@ -152,21 +152,30 @@ RA = tbdata['RA_1']
 DEC = tbdata['DEC_1']
 
 S_LoTSS= np.array(tbdata['Total_flux_1'])/1000.#Jy
-e_S_LoTSS = 0.1 * S_LoTSS # Combine the statistical LoTSS error and overall error on LoTSS
+# e_S_LoTSS = np.array(tbdata['E_Total_flux_1'])/1000.#Jy
+LoTSS_rms = np.array(tbdata['Isl_rms_1'])/1000 #Jy/beam
+LoTSS_rms = np.where(np.isnan(LoTSS_rms), 0, LoTSS_rms)
+#If you want to convolve, do this:
+stat_err_LoTSS = np.array(tbdata['E_Total_flux_1'])/1000.#Jy
+e_S_LoTSS = np.sqrt( np.square(0.1 * S_LoTSS) + np.square(stat_err_LoTSS) ) # Combine the statistical LoTSS error and overall error on LoTSS
 
 #NVSS
-S_NVSS, e_S_NVSS = np.array(tbdata['S1_4'])/1000., 0.1 * np.array(tbdata['S1_4'])/1000. # Jy
-S_NVSS, e_S_NVSS = np.where(np.isnan(S_NVSS), 0., S_NVSS), np.where(np.isnan(S_NVSS), 0., e_S_NVSS) #deal with any non-detections
+S_NVSS, stat_e_S_NVSS = np.array(tbdata['S1_4'])/1000., np.array(tbdata['e_S1_4'])/1000. # Jy
+S_NVSS, stat_e_S_NVSS = np.where(np.isnan(S_NVSS), 0., S_NVSS), np.where(np.isnan(S_NVSS), 0., stat_e_S_NVSS) #deal with any non-detections
+e_S_NVSS = np.sqrt( np.square(0.1 * S_NVSS) + np.square(stat_e_S_NVSS) ) #Combine the errors
 
 #VLASS
 # S_VLASS, e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., 0.1 * np.array(tbdata['Total_flux_2'])/1000. # Jy
-S_VLASS, e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., 0.1 * np.array(tbdata['Total_flux_2'])/1000. # Jy
-S_VLASS, e_S_VLASS = np.where(np.isnan(S_VLASS), 0., S_VLASS), np.where(np.isnan(S_VLASS), 0., e_S_VLASS) #deal with non-detections
+S_VLASS, stat_e_S_VLASS = np.array(tbdata['Total_flux_2'])/1000., np.array(tbdata['E_Total_flux_2'])/1000. # Jy
+S_VLASS, stat_e_S_VLASS = np.where(np.isnan(S_VLASS), 0., S_VLASS), np.where(np.isnan(S_VLASS), 0., stat_e_S_VLASS) #deal with non-detections
+e_S_VLASS = np.sqrt( np.square(0.1 * S_VLASS) + np.square(stat_e_S_VLASS) ) #Combine the errors
 
-#LoLSS
+
+#LoLSS > Errors not combined
 S_LoLSS, e_S_LoLSS = np.array(tbdata['Total_flux_LoLLS'])/1000., np.array(tbdata['E_Total_flux_LoLLS'])/1000. # Jy/beam
 S_LoLSS, e_S_LoLSS = np.where(np.isnan(S_LoLSS), 0, S_LoLSS), np.where(np.isnan(S_LoLSS), 0, e_S_LoLSS)
-
+LoLSS_rms = np.array(tbdata['Isl_rms_1a'])/1000 #Jy/beam
+LoLSS_rms = np.where(np.isnan(LoLSS_rms), 0, LoLSS_rms)
 
 
 #VLSSr
@@ -182,13 +191,13 @@ S_FIRST, e_S_FIRST = np.array(tbdata['FINT'])/1000, 0.1*(np.array(tbdata['FINT']
 S_FIRST, e_S_FIRST = np.where(np.isnan(S_FIRST), 0, S_FIRST), np.where(np.isnan(S_FIRST), 0, e_S_FIRST)
 
 #inband LoTSS
-S_inband_low, e_S_inband_low = np.array(tbdata['M1_L1flux']), 0.1 * np.array(tbdata['M1_L1flux']) #mJy
+S_inband_low, e_S_inband_low = np.array(tbdata['M1_L1flux']), 0.1 * np.array(tbdata['M1_L1flux']) #Jy
 S_inband_low, e_S_inband_low = np.where(np.isnan(S_inband_low), 0, S_inband_low), np.where(np.isnan(S_inband_low), 0, e_S_inband_low)
 
-S_inband_mid, e_S_inband_mid = np.array(tbdata['M1_L2flux']), 0.1 * np.array(tbdata['M1_L2flux']) #mJy
+S_inband_mid, e_S_inband_mid = np.array(tbdata['M1_L2flux']), 0.1 * np.array(tbdata['M1_L2flux']) #Jy
 S_inband_mid, e_S_inband_mid = np.where(np.isnan(S_inband_mid), 0, S_inband_mid), np.where(np.isnan(S_inband_mid), 0, e_S_inband_mid)
 
-S_inband_high, e_S_inband_high = np.array(tbdata['M1_L3flux']), 0.1 * np.array(tbdata['M1_L3flux']) #mJy
+S_inband_high, e_S_inband_high = np.array(tbdata['M1_L3flux']), 0.1 * np.array(tbdata['M1_L3flux']) #Jy
 S_inband_high, e_S_inband_high = np.where(np.isnan(S_inband_high), 0, S_inband_high), np.where(np.isnan(S_inband_high), 0, e_S_inband_high)
 
 #inband_LoLSS
@@ -558,6 +567,7 @@ col2 = fits.Column(name='RA', format = 'E', array = RA)
 col3 = fits.Column(name='Dec', format = 'E', array = DEC)
 col4 = fits.Column(name='LoTSS_flux', format = 'E', array = S_LoTSS)
 col5 = fits.Column(name='e_LoTSS_flux', format = 'E', array = e_S_LoTSS)
+col5a = fits.Column(name='LoTSS_rms', format = 'E', array = LoTSS_rms)
 
 
 col6 = fits.Column(name='NVSS_RA', format = 'E', array = tbdata['RAJ2000_1'])
@@ -580,7 +590,7 @@ col23 = fits.Column(name='LoLSS_RA', format = 'E', array = tbdata['RA_1a'])
 col24 = fits.Column(name='LoLSS_Dec', format = 'E', array = tbdata['DEC_1a'])
 col25 = fits.Column(name='LoLSS_flux', format = 'E', array = S_LoLSS)
 col26 = fits.Column(name='e_LoLSS_flux', format = 'E', array = e_S_LoLSS)
-
+col26a = fits.Column(name='LoLSS_rms', format = 'E', array = LoLSS_rms)
 
 col19 = fits.Column(name='VLSSr_RA', format = 'E', array = tbdata['RAJ2000_2'])
 col20 = fits.Column(name='VLSSr_Dec', format = 'E', array = tbdata['DEJ2000_2'])
@@ -658,9 +668,9 @@ col77 = fits.Column(name='a_high_VLASS', format = 'E', array = norm_high_array2)
 col78 = fits.Column(name='alpha_high_VLASS', format = 'E', array = alpha_high_array2)
 col79 = fits.Column(name='e_alpha_high_VLASS', format = 'E', array = alpha_err_high_array2)
 
-cols = fits.ColDefs([col68, col69, col70, col71,col72, col73, col74, col75, col76, col77, col78, col79, col1, col2, col3, col4, col5, col6, col7,\
+cols = fits.ColDefs([col68, col69, col70, col71,col72, col73, col74, col75, col76, col77, col78, col79, col1, col2, col3, col4, col5, col5a, col6, col7,\
                       col8, col9, col10, col11, col12, col13,col14, col43, col80,col81, col82, col83, col15, col16, col17, col18, col19,\
-    col20, col21, col22, col23, col24, col25, col26, col27, col28, col29, col30, col31, col32, col33, col34, col35, col36, col37, col38, col39, \
+    col20, col21, col22, col23, col24, col25, col26, col26a,  col27, col28, col29, col30, col31, col32, col33, col34, col35, col36, col37, col38, col39, \
         col40, col41, col42,col44, col45, col46, col47, col48, col49, col50, col51, col52, col53, col54, col55\
             ,col56, col57, col58, col59, col60, col61, col62, col63, col64, col65, col66, col67])
 tbhdu = fits.BinTableHDU.from_columns(cols)  

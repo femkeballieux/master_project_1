@@ -15,7 +15,7 @@ import scipy.stats as st
 # Load in the table
 hdulist = fits.open(
     '/net/vdesk/data2/bach1/ballieux/master_project_1/data/master_clean.fits')
-sample = 'VLASS'  # This van be either VLASS for the sample LoTSS NVSS VLASS, or LoLSS for LoLSS LoTSS NVSS
+sample = 'LoLSS'  # This van be either VLASS for the sample LoTSS NVSS VLASS, or LoLSS for LoLSS LoTSS NVSS
 tbdata = hdulist[1].data
 orig_cols = hdulist[1].columns
 # print(orig_cols)
